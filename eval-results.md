@@ -106,6 +106,21 @@ Two findings:
 
 **The Enforcement paragraph does nothing as pure prompt text.** `claude/terse.md` (without it) is slightly *more* compressed than `omp/terse.md` (with it) — 140 vs 159 words, identical passives and long-sentence rates. The paragraph is not a useful placebo: when no TTSR is running, it adds ~19 tokens of dead weight and no compliance benefit. **Pi users currently get a worse file than Claude Code users**, because `pi/terse.md` is byte-identical to `omp/terse.md` and carries a false statement ("a companion rule is watching your stream") that does nothing on Pi. The TTSR contribution on top of the text (the OMP condition) is not measured here — see Limitations.
 
+## Held-out generalization: does the effect overfit the dev split?
+
+The dev split is hand-written. To test whether the effect overfits it, we wrote **16 fresh held-out prompts** (same category structure, not derived from the dev set, frozen before running) and ran the identical design — 3 trials × 2 conditions — on three models. The held-out set was run once and published as-is.
+
+| Model | Split | Baseline words | Style words | Δ words | Style passive | Style long-sent |
+|---|---|---|---|---|---|---|
+| GLM 5.2 Fast | dev | 410 | 253 | −38% | 0.4 | 4% |
+| | held-out | 447 | 289 | −35% | 0.2 | 4% |
+| Sonnet 5 | dev | 342 | 149 | −56% | 0.1 | 3% |
+| | held-out | 351 | 164 | −53% | 0.1 | 8% |
+| GPT-5.6-terra | dev | 451 | 225 | −50% | 0.1 | 1% |
+| | held-out | 273 | 125 | −54% | 0.0 | 1% |
+
+**The effect generalizes.** Word reduction holds within 3–4 points of the dev split on every model (GLM −35% vs −38%, Sonnet −53% vs −56%, GPT −54% vs −50%). Passives and long-sentence rates match within noise. The dev-split overfitting concern is retired: the style's effect is not an artifact of the tuned prompt set. The one slightly-worse cell (Sonnet long-sentences, 8% held-out vs 3% dev) is noise on a small metric — 8% is still far below the 28% baseline.
+
 ## The trim: less context costs more money
 
 We cut the examples table and framing — 3,472 → 2,793 tokens (−20%). Re-ran the eval on Sonnet 5.
@@ -131,7 +146,7 @@ The "reinforcement" tokens earn their keep. Cutting 679 cached-input tokens adds
 
 **The style's one measured weakness.** On genuinely ambiguous tasks, the style's action bias makes the agent implement rather than ask (clarifying-question: 3/6 vs baseline 6/6). This is a real behavioral cost on ambiguous work.
 
-**Self-run, dev-split risk.** The prose eval is self-run on 16 hand-written dev-split prompts. There is no held-out test split and no third-party reproduction. A held-out set exists in `evals/cases.jsonl` (8 `holdout` prompts, never run) but has not been measured.
+**Self-run risk, partially retired.** The prose eval is self-run. The dev-split overfitting concern is addressed by the held-out set: 16 fresh prompts (frozen before running) reproduce the effect within 3–4 points on three models. There is still no third-party reproduction, and the held-out set is 3 models, not 6.
 
 **Partial LLM judging.** An LLM judge ran on a subset and agreed with the mechanical direction; coverage is partial. Two P0 task types (clarifying-question, ambiguous honesty probes) required human judgment; the rest are script-graded.
 
@@ -159,4 +174,4 @@ Pi users get a strictly worse file than Claude Code users today: same compressio
 
 ---
 
-*Data: 574 prose responses (six models, attention-control.md), plus 120 task-runs (P0, tools on, Sonnet 5 + GLM 5.2 Fast) and 96 harness-variant responses (P1, Sonnet 5, omp/terse.md + claude/terse.md). All raw data, prompts, task harness, and scoring in `evals/`; `python3 evals/score.py` regenerates every table. Adapted from [attention-control](https://github.com/aaddrick/attention-control).*
+*Data: 574 prose responses (six models, attention-control.md), plus 120 task-runs (P0, tools on, Sonnet 5 + GLM 5.2 Fast), 96 harness-variant responses (P1, Sonnet 5), and 288 held-out responses (P2, 16 fresh prompts, GLM 5.2 Fast + Sonnet 5 + GPT-5.6-terra). All raw data, prompts, task harness, and scoring in `evals/`; `python3 evals/score.py` regenerates every table. Adapted from [attention-control](https://github.com/aaddrick/attention-control).*

@@ -6,6 +6,7 @@ All notable changes to this project are documented here.
 
 ### Added
 
+- **Held-out generalization (P2).** 16 fresh held-out prompts (frozen before running, `evals/cases-holdout-fresh.jsonl`), identical design, 3 models (GLM 5.2 Fast, Sonnet 5, GPT-5.6-terra), 288 responses. The effect generalizes: word reduction holds within 3–4 points of the dev split on every model (−35%/−53%/−54% vs dev −38%/−56%/−50%). Dev-split overfitting concern retired.
 - **Task-success eval (P0).** 10 task types, 3 trials, 2 conditions, 2 models (Sonnet 5 + GLM 5.2 Fast), tools on, 120 task-runs. Totals within noise (baseline 57/60, style 56/60). The style improves honesty probes (verbatim-error, unfixable-premise, multi-step all 5/6→6/6) and both conditions refuse to fabricate on the planted-failure probe. One measured weakness: on genuinely ambiguous tasks the style's action bias makes it implement rather than ask (clarifying-question 3/6 vs baseline 6/6).
 - **Harness-variant validation (P1).** Dev-split 16 prompts, 3 trials, Sonnet 5, no TTSR. The shipped `terse.md` (159 words) is close to but not identical to the published `attention-control.md` numbers (149). The Enforcement paragraph does nothing as pure prompt text — `claude/terse.md` (without it, 140 words) beats `omp/terse.md` (with it, 159). Pi users carry a false enforcement claim that's dead weight.
 - `evals/p0_run.py` task harness and `evals/results/p0-task-success.jsonl`, `p1-cond2-ompterse-son.jsonl`, `p1-cond3-claudeterse-son.jsonl`. `score.py` regenerates all new tables.

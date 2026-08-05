@@ -131,7 +131,35 @@ def p1_table():
     print(f"Placebo: omp with Enforcement ({c2['w']:.0f}w) vs claude without ({c3['w']:.0f}w), delta {c2['w']-c3['w']:+.0f}w")
 
 
+def p2_table():
+    """P2 held-out: dev-split vs fresh held-out prompt set, per model."""
+    def stats(path):
+        rows = [json.loads(l) for l in open(RESULTS / path)]
+        agg = defaultdict(list)
+        for r in rows:
+            w, pv, pf, lp, cl, op = metrics(r["response"])
+            for k, v in [("w", w), ("pv", pv), ("lp", lp)]:
+                agg[k].append(v)
+        return {k: statistics.mean(v) for k, v in agg.items()}
+    pairs = [
+        ("GLM 5.2 Fast", "omp-dev-baseline-glm300k.jsonl", "omp-dev-candidate-glm300k.jsonl", "p2-holdout-glm-baseline.jsonl", "p2-holdout-glm-candidate.jsonl"),
+        ("Sonnet 5", "omp-dev-baseline-son.jsonl", "omp-dev-candidate-son.jsonl", "p2-holdout-son-baseline.jsonl", "p2-holdout-son-candidate.jsonl"),
+        ("GPT-5.6-terra", "omp-dev-baseline-gpt.jsonl", "omp-dev-candidate-gpt.jsonl", "p2-holdout-gpt-baseline.jsonl", "p2-holdout-gpt-candidate.jsonl"),
+    ]
+    print("\n=== P2 held-out vs dev split (attention-control candidate) ===")
+    print(f"{'model':<14} {'split':<8} {'base_w':>7} {'cand_w':>7} {'dw%':>6} {'base_pv':>7} {'cand_pv':>7} {'base_ls':>7} {'cand_ls':>7}")
+    for label, db, dc, hb, hc in pairs:
+        b_dev, c_dev = stats(db), stats(dc)
+        b_ho, c_ho = stats(hb), stats(hc)
+        dw_dev = (c_dev["w"] / b_dev["w"] - 1) * 100
+        dw_ho = (c_ho["w"] / b_ho["w"] - 1) * 100
+        print(f"{label:<14} {'dev':<8} {b_dev['w']:>7.0f} {c_dev['w']:>7.0f} {dw_dev:>5.0f}% {b_dev['pv']:>7.1f} {c_dev['pv']:>7.1f} {b_dev['lp']*100:>6.0f}% {c_dev['lp']*100:>6.0f}%")
+        print(f"{label:<14} {'heldout':<8} {b_ho['w']:>7.0f} {c_ho['w']:>7.0f} {dw_ho:>5.0f}% {b_ho['pv']:>7.1f} {c_ho['pv']:>7.1f} {b_ho['lp']*100:>6.0f}% {c_ho['lp']*100:>6.0f}%")
+        print(f"{'':<14} {'delta':<8} {'':>7} {'':>7} {dw_ho-dw_dev:>+5.0f}pp")
+
+
 if __name__ == "__main__":
     main()
     p0_table()
     p1_table()
+    p2_table()
