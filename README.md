@@ -2,7 +2,7 @@
 
 An output style for agents. Result-first, verbatim errors, no preamble, no fabrication. Forked from [attention-control](https://github.com/aaddrick/attention-control) with three evidence-driven fixes. Proven across six models.
 
-Agents write too much and hedge too often. This rule fixes both. It is a discipline, not a personality — and it is measurable. See [`eval-results.md`](eval-results.md) for the full evaluation.
+Agents write too much and hedge too often. This rule fixes both. It is a discipline, not a personality — and it is measurable. See [`eval-results.md`](eval-results.md) for the full evaluation, and [`evals/`](evals/) for the raw responses, prompts, and scoring script (`python3 evals/score.py` reproduces the tables).
 
 ![Word count: baseline vs style, six models](charts/02-word-count.png)
 
@@ -53,4 +53,4 @@ This fork drops the air-traffic-control framing in favor of a direct discipline,
 
 ## License
 
-MIT. See [`LICENSE`](LICENSE).
+MIT for the original contributions in this repo. See [`LICENSE`](LICENSE). The upstream attribution chain is in [`NOTICE.md`](NOTICE.md) — attention-control (MIT) and i-have-adhd (MIT) are clean, but the asd-ste100 language layer derives from an unlicensed gist adapting a trademarked standard, and its license status is uncertain. Read `NOTICE.md` before relying on the full chain for commercial use.

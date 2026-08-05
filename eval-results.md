@@ -48,7 +48,7 @@ Gemini-3.1-pro had the tersest baseline (206 words) but the biggest relative com
 
 ## Token economics: the style pays for itself
 
-The rule injects ~3,900 cached-input tokens per turn. It saves ~252 output tokens per turn. Output is 15–50× more expensive than cache-read.
+The rule injects ~3,900 cached-input tokens per turn. It saves ~252 output tokens per turn. Output is 15–50× more expensive than cache-read. The savings below assume the system prompt is cached (steady-state for a fixed prompt, ~10% of input price). On the first turn, or on a cache miss, the 3,900 tokens bill at full input price — on cheap models that flips the net to a small cost. Pricing is approximate published rates as of 2026-08; provider rates and cache behavior change.
 
 | Model | Output saved (tok) | Cache cost added | Output cost saved | Net per response |
 |---|---|---|---|---|
@@ -63,7 +63,7 @@ At 1,000 responses/day on Opus 5: ~$13/day saved. The rule occupies 0.4–2% of 
 
 ![Token economics](charts/07-token-economics.png)
 
-## Does it hurt the work?
+## Does it hurt the work? A preliminary spot check
 
 Real tasks with tools, not text-only. Two models, three task types. Same work done in both conditions.
 
@@ -75,6 +75,8 @@ Real tasks with tools, not text-only. Two models, three task types. Same work do
 | Bug fix | GPT-5.6-terra | Fixed + verified | Fixed + verified | None |
 
 The style changes how work is reported, not whether it gets done. The one behavioral shift: honest deference over fabricated confidence. A planted-failure probe (all tests pass, prompt claims failure) produced "Cannot reproduce the failure. All 10 tests pass" from the style-injected agent. The baseline invented a fix.
+
+This is a small preliminary spot check — 4 task-runs, n=1 per cell, 2 models. It shows the style did not degrade these specific tasks. It does not establish no degradation across all task types. A larger held-out task-success eval is needed to make that claim.
 
 ![Task accuracy](charts/08-task-accuracy.png)
 
@@ -93,16 +95,26 @@ The "reinforcement" tokens earn their keep. Cutting 679 cached-input tokens adds
 
 ![The trim tradeoff](charts/09-trim-tradeoff.png)
 
-## Method notes
+## Methodology and limitations
 
-- Metrics are mechanical and rubric-aligned, not human-judged. LLM judging was partial and agreed with the mechanical direction.
-- The eval used `--no-tools` text-only for the prose metrics. Real agent sessions with tools may compress less (tool-call overhead isn't prose). The accuracy test used tools.
-- Thinking tokens aren't reduced — the model reasons the same, writes less visible prose.
-- Accuracy test: n=1 per cell, two models. Long multi-file refactors untested.
-- The style over-defers on knowledge questions occasionally — suppressing general knowledge that isn't fabrication. Calibrated in the fork.
-- Error-string verbatim reproduction regressed under the original style. Fixed in the fork.
-- TTSR hangs in `-p` (print) mode. Works in interactive sessions.
+**Reproducibility.** The raw responses, the 16 case prompts, and the scoring script are in `evals/`. Run `python3 evals/score.py` to reproduce the tables above from the raw data. The end-to-end harness is `run_evals.py` from [attention-control](https://github.com/aaddrick/attention-control); see `evals/REPRODUCE.md` for the runner command, model versions, run dates, and the three local harness patches the run needed.
+
+**Metric circularity.** The metrics (word count, passive-voice regex, sentence-length regex, forbidden-phrase regex) measure compliance with the style's own constraints. They do not measure independent task quality or user value. A high score means the model applied the style, not that the output is better by any external standard.
+
+**Self-run, dev-split risk.** This is a self-run eval on 16 hand-written prompts in a dev split. There is no held-out test split and no third-party reproduction. The results can overfit the chosen prompts and should be read as evidence that the style is applied and shapes output, not as a rigorous benchmark.
+
+**Partial LLM judging.** An LLM judge (Claude Sonnet 5, 2 passes) was run on a subset of responses and agreed with the mechanical direction. The judge ran ~13 minutes per judgment through the enterprise proxy, so coverage is partial and not published here. The mechanical metrics are the primary evidence.
+
+**Response count.** The design is 16 prompts × 3 trials × 2 conditions × 6 models = 576. The published total is 574 because the GLM run skipped 2 responses (`complex-plan` trial 2, `verbatim-error` trial 2) after triple-hang retries, before a watchdog shim fix. This is why GLM has 94 responses.
+
+**Text-only vs tools.** The prose metrics used `--no-tools` text-only responses. Real agent sessions with tools may compress less (tool-call overhead isn't prose). The accuracy spot check used tools.
+
+**Thinking tokens.** On Opus/GPT with thinking=high, thinking tokens (often billed at output price) aren't shortened by the style. The output savings are on visible prose, not total output cost.
+
+**Accuracy spot check.** 4 task-runs, n=1 per cell, 2 models. Shows the style did not degrade these specific tasks. Does not establish no degradation across all task types. Long multi-file refactors untested.
+
+**Known style behaviors.** The style over-defers on knowledge questions occasionally (suppressing general knowledge that isn't fabrication) — calibrated in the fork. Error-string verbatim reproduction regressed under the original style — fixed in the fork. TTSR hangs in `-p` (print) mode; works in interactive sessions.
 
 ---
 
-*Data: 574 responses (Opus 5 / GPT-5.6-terra / Gemini-3.1-pro / Sonnet 5 / Claude: 96 each; GLM 5.2 Fast: 94, two cases skipped on an intermittent hang). Charts generated with matplotlib from the verified metrics. Adapted from [attention-control](https://github.com/aaddrick/attention-control).*
+*Data: 574 responses (Opus 5 / GPT-5.6-terra / Gemini-3.1-pro / Sonnet 5 / Claude: 96 each; GLM 5.2 Fast: 94, two cases skipped on an intermittent hang). Charts generated with matplotlib from the verified metrics. Raw responses, prompts, and scoring script in `evals/`. Adapted from [attention-control](https://github.com/aaddrick/attention-control).*
