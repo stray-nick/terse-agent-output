@@ -158,8 +158,37 @@ def p2_table():
         print(f"{'':<14} {'delta':<8} {'':>7} {'':>7} {dw_ho-dw_dev:>+5.0f}pp")
 
 
+def p3_table():
+    """P3 blind judge: baseline vs styled on independent quality dimensions."""
+    dims = ["correctness", "completeness", "actionability", "calibration"]
+    rows = [json.loads(l) for l in open(RESULTS / "p3-son-judgments.jsonl")]
+    from collections import defaultdict
+    base = defaultdict(list); cand = defaultdict(list)
+    p1 = defaultdict(list); p2 = defaultdict(list)
+    for r in rows:
+        s = r["scores"]; order = r["order"]
+        for d in dims:
+            b = s["A"][d] if order == "bc" else s["B"][d]
+            c = s["B"][d] if order == "bc" else s["A"][d]
+            base[d].append(b); cand[d].append(c)
+            key = (r["case_id"], r["trial"], d)
+            (p1 if r["pass"] == 1 else p2)[key].append(c)
+    print("\n=== P3 blind judge (Sonnet 5, independent dimensions, judge blind to condition) ===")
+    print(f"{'dimension':<16} {'baseline':>10} {'styled':>10} {'delta':>8}")
+    for d in dims:
+        print(f"{d:<16} {statistics.mean(base[d]):>10.2f} {statistics.mean(cand[d]):>10.2f} {statistics.mean(cand[d])-statistics.mean(base[d]):>+8.2f}")
+    agreed = tot = 0; diffs = []
+    for k in set(p1) & set(p2):
+        for a in p1[k]:
+            for b in p2[k]:
+                tot += 1; agreed += a == b; diffs.append(abs(a - b))
+    if tot:
+        print(f"\nInter-pass agreement: {agreed}/{tot} exact-match ({100*agreed/tot:.0f}%), mean |diff| {statistics.mean(diffs):.2f}")
+
+
 if __name__ == "__main__":
     main()
     p0_table()
     p1_table()
     p2_table()
+    p3_table()

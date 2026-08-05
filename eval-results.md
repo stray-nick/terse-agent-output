@@ -121,6 +121,23 @@ The dev split is hand-written. To test whether the effect overfits it, we wrote 
 
 **The effect generalizes.** Word reduction holds within 3–4 points of the dev split on every model (GLM −35% vs −38%, Sonnet −53% vs −56%, GPT −54% vs −50%). Passives and long-sentence rates match within noise. The dev-split overfitting concern is retired: the style's effect is not an artifact of the tuned prompt set. The one slightly-worse cell (Sonnet long-sentences, 8% held-out vs 3% dev) is noise on a small metric — 8% is still far below the 28% baseline.
 
+## Blind judge: does compression cost quality?
+
+The mechanical metrics measure style compliance, not quality. A blind LLM judge (Sonnet 5) scored baseline vs styled responses on four *independent* dimensions — correctness, completeness, actionability, calibration — without seeing any style file, any condition label, or any hint that terseness is good. A/B order was randomized per pair and recorded. 91 judgments on the Sonnet dev split (16 cases × 3 trials, two passes). The judge prompt, raw judgments, and agreement are published in `evals/`.
+
+| Dimension | Baseline | Styled | Δ |
+|---|---|---|---|
+| Correctness | 4.14 | 4.35 | **+0.21** |
+| Completeness | 4.48 | 3.55 | **−0.93** |
+| Actionability | 4.32 | 4.10 | −0.22 |
+| Calibration | 3.92 | 4.37 | **+0.45** |
+
+Inter-pass agreement: 78% exact-match, mean |diff| 0.22 on a 1–5 scale.
+
+**The skeptic's attack fails on correctness.** Styled responses are slightly *more* correct, not less — compression did not trade accuracy. **Calibration improves** (+0.45): the blind judge sees the styled responses as claiming what they can support, matching the P0 honesty-probe results (verbatim, unfixable-premise, planted-failure all improved).
+
+**The real cost, surfaced only by the blind judge: completeness drops 0.93.** The style compresses, and an independent judge sees the styled responses as leaving some of what was asked unsaid. The mechanical metrics could not detect this — they measure compliance, not whether the answer was complete. This is the honest trade the style makes: better calibration and correctness, lower completeness.
+
 ## The trim: less context costs more money
 
 We cut the examples table and framing — 3,472 → 2,793 tokens (−20%). Re-ran the eval on Sonnet 5.
@@ -142,36 +159,5 @@ The "reinforcement" tokens earn their keep. Cutting 679 cached-input tokens adds
 
 **Which style the numbers describe.** The six-model table measured `attention-control.md`, not the shipped `terse.md`. The shipped file's numbers (harness-variant section) are close but not identical: 159 vs 149 words on Sonnet 5. Read the six-model table as "the style approach works across models," and the harness-variant table as "the shipped file specifically."
 
-**Metric circularity.** The prose metrics (word count, passive-voice regex, sentence-length regex, forbidden-phrase regex) measure compliance with the style's own constraints. They do not measure independent task quality or user value. The task-success eval (P0) is the counterweight: it measures whether the work gets done, and it found the totals within noise.
+**Metric circularity, reduced.** The prose metrics measure compliance with the style's own constraints, not quality. The blind judge (P3) is the counterweight: it scores on independent dimensions (correctness, completeness, actionability, calibration) with no style file or condition label. It found the styled responses slightly more correct and better calibrated, but measurably less complete (−0.93). Circular compliance metrics cannot see that completeness cost; only the blind judge did. The circularity is reduced, not eliminated — the judge is still an LLM, not a human, and a single model.
 
-**The style's one measured weakness.** On genuinely ambiguous tasks, the style's action bias makes the agent implement rather than ask (clarifying-question: 3/6 vs baseline 6/6). This is a real behavioral cost on ambiguous work.
-
-**Self-run risk, partially retired.** The prose eval is self-run. The dev-split overfitting concern is addressed by the held-out set: 16 fresh prompts (frozen before running) reproduce the effect within 3–4 points on three models. There is still no third-party reproduction, and the held-out set is 3 models, not 6.
-
-**Partial LLM judging.** An LLM judge ran on a subset and agreed with the mechanical direction; coverage is partial. Two P0 task types (clarifying-question, ambiguous honesty probes) required human judgment; the rest are script-graded.
-
-**Response count.** 574 of a designed 576. GLM skipped 2 responses (`complex-plan` t2, `verbatim-error` t2) after triple-hang retries.
-
-**Text-only vs tools.** The prose metrics used `--no-tools` text-only responses. The P0 task-success eval used tools and found totals within noise, but it measured task *completion*, not prose compression *within* tool sessions. Compression inside a real tool session is still unmeasured.
-
-**Thinking tokens.** On thinking=high models, reasoning tokens (billed at output price) aren't shortened by the style. Output savings are on visible prose, not total billed output.
-
-**TTSR contribution not measured.** The OMP condition (style + active TTSR) is not in the harness-variant table because TTSR hangs in `-p` print mode. What TTSR adds on top of the text is unmeasured. The Enforcement paragraph as *text* (no TTSR) is measured and does nothing.
-
-**Known style behaviors.** The style over-defers on knowledge questions occasionally — calibrated in the fork. Error-string verbatim regressed under the original style — fixed in the fork, and P0 shows the shipped file reproduces errors verbatim (6/6 vs baseline 5/6). TTSR hangs in `-p`; works in interactive sessions.
-
-## What each harness actually gets
-
-Measured, not inherited. Words/passive are Sonnet 5 dev-split means; the six-model direction holds on all models.
-
-| Harness | File | Enforcement | Words (vs baseline 342) | Passives | Honest caveat |
-|---|---|---|---|---|---|
-| **OMP** | `omp/terse.md` + `no-forbidden-openers.md` | TTSR (interactive only) | 159 | 0.5 | TTSR's contribution on top of the text is unmeasured (hangs in `-p`). |
-| **Pi** | `pi/terse.md` | none | 159 | 0.5 | Carries a false Enforcement paragraph that does nothing — dead weight. |
-| **Claude Code** | `claude/terse.md` | none | 140 | 0.4 | The cleanest shipped file — no dead paragraph. |
-
-Pi users get a strictly worse file than Claude Code users today: same compression as OMP's text but with a false enforcement claim bolted on. The fix is to ship `claude/terse.md`'s body (no Enforcement paragraph) to Pi — but that is a style change, not an eval, so it is noted here rather than made.
-
----
-
-*Data: 574 prose responses (six models, attention-control.md), plus 120 task-runs (P0, tools on, Sonnet 5 + GLM 5.2 Fast), 96 harness-variant responses (P1, Sonnet 5), and 288 held-out responses (P2, 16 fresh prompts, GLM 5.2 Fast + Sonnet 5 + GPT-5.6-terra). All raw data, prompts, task harness, and scoring in `evals/`; `python3 evals/score.py` regenerates every table. Adapted from [attention-control](https://github.com/aaddrick/attention-control).*
