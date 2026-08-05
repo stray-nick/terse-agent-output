@@ -8,15 +8,15 @@ Agents write too much and hedge too often. This rule fixes both. It is a discipl
 
 ## Install
 
-Two files. `terse.md` is the style. `no-forbidden-openers.md` is an optional enforcement rule.
+Two files. `terse.md` is the style. `no-forbidden-openers.md` is an optional enforcement rule. Download from the [latest release](https://github.com/stray-nick/terse-agent-output/releases/latest) or copy from this repo.
 
 ### OMP
 
-Copy both files to `~/.omp/agent/rules/`:
+Download and copy both files to `~/.omp/agent/rules/`:
 
 ```bash
-cp terse.md ~/.omp/agent/rules/terse.md
-cp no-forbidden-openers.md ~/.omp/agent/rules/no-forbidden-openers.md
+curl -L -o ~/.omp/agent/rules/terse.md https://github.com/stray-nick/terse-agent-output/releases/latest/download/terse.md
+curl -L -o ~/.omp/agent/rules/no-forbidden-openers.md https://github.com/stray-nick/terse-agent-output/releases/latest/download/no-forbidden-openers.md
 ```
 
 `terse.md` is `alwaysApply: true` — OMP injects it into the system prompt every turn. It survives `/compact`. `no-forbidden-openers.md` is a TTSR (Time-Traveling Stream Rules) rule that aborts forbidden openers mid-stream and forces a retry.
@@ -28,14 +28,14 @@ cp no-forbidden-openers.md ~/.omp/agent/rules/no-forbidden-openers.md
 Pi has the same rule system but no TTSR. Install only the style rule:
 
 ```bash
-cp terse.md ~/.pi/agent/rules/terse.md
+curl -L -o ~/.pi/agent/rules/terse.md https://github.com/stray-nick/terse-agent-output/releases/latest/download/terse.md
 ```
 
 `terse.md` is `alwaysApply: true` — Pi injects it every turn. Skip `no-forbidden-openers.md`: Pi cannot run stream rules. You get the full output effect; you do not get mid-stream enforcement.
 
 ## What it does
 
-Reshapes output. Same work done. 574 responses across six models (Opus 5, GPT-5.6-terra, Gemini-3.1-pro, Sonnet 5, GLM 5.2 Fast, Claude): word count −38 to −67%, passive voice −76 to −95%, long sentences to 0–4%. No degradation in task accuracy. Net cost savings on every model — output tokens saved outweigh cached input tokens added.
+Reshapes output. Same work done. 574 responses across six models (Opus 5, GPT-5.6-terra, Gemini-3.1-pro, Sonnet 5, GLM 5.2 Fast, Claude): word count −38 to −67%, passive voice −76 to −95%, long sentences to 0–4%. No degradation observed in a small preliminary task-accuracy spot check. Net cost savings on every model — output tokens saved outweigh cached input tokens added, conditional on cache hits.
 
 ## The three fixes over attention-control
 
