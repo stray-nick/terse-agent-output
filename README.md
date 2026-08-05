@@ -8,7 +8,7 @@ Agents write too much and hedge too often. This rule fixes both. It is a discipl
 
 ## Install
 
-Two files. `terse.md` is the style. `no-forbidden-openers.md` is an optional enforcement rule. Download from the [latest release](https://github.com/stray-nick/terse-agent-output/releases/latest) or copy from this repo.
+Two files for OMP/Pi. `terse.md` is the style. `no-forbidden-openers.md` is an optional enforcement rule. `claude/terse.md` is the Claude Code variant. Download from the [latest release](https://github.com/stray-nick/terse-agent-output/releases/latest) or copy from this repo.
 
 ### OMP
 
@@ -32,6 +32,16 @@ curl -L -o ~/.pi/agent/rules/terse.md https://github.com/stray-nick/terse-agent-
 ```
 
 `terse.md` is `alwaysApply: true` — Pi injects it every turn. Skip `no-forbidden-openers.md`: Pi cannot run stream rules. You get the full output effect; you do not get mid-stream enforcement.
+
+### Claude Code
+
+Claude Code output styles are markdown files with Claude frontmatter. Use `claude/terse.md` — the same style with Claude frontmatter and the OMP-specific enforcement section removed:
+
+```bash
+curl -L -o ~/.claude/output-styles/terse.md https://raw.githubusercontent.com/stray-nick/terse-agent-output/main/claude/terse.md
+```
+
+Then select it with `/output-style Terse`, or set it in your settings. Claude Code has no stream rules, so there is no enforcement companion — you get the full output effect, no mid-stream abort.
 
 ## What it does
 
