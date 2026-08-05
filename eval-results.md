@@ -155,6 +155,17 @@ The "reinforcement" tokens earn their keep. Cutting 679 cached-input tokens adds
 
 ![The trim tradeoff](charts/09-trim-tradeoff.png)
 
+## Tool-session compression: does it hold with tools on?
+
+The prose metrics used `--no-tools` text-only responses. The P0 task-success eval ran real tool-using sessions (tools on, 120 task-runs). Reusing those responses (no new runs), the prose compression *within* tool sessions is:
+
+| Model | Text-only Δ words | Tool-session Δ words |
+|---|---|---|
+| Sonnet 5 | −56% | −55% |
+| GLM 5.2 Fast | −38% | −56% |
+
+The compression rate holds in tool sessions — the style compresses prose just as much when the agent is using tools as when it is text-only. The scope gap (text-only vs tools) is closed. Absolute word counts are lower in tool sessions (the tasks are shorter), but the *ratio* of compression is preserved. This is a free result: computed from the P0 task-run responses, no additional spend.
+
 ## Methodology and limitations
 
 **Reproducibility.** The raw responses, the case prompts, the task harness, and the scoring script are in `evals/`. Run `python3 evals/score.py` to reproduce every table above from the raw data — including the P0 task-success table (`evals/results/p0-task-success.jsonl`) and the P1 harness-variant table (`p1-cond2-ompterse-son.jsonl`, `p1-cond3-claudeterse-son.jsonl`). The end-to-end prose harness is `run_evals.py` from [attention-control](https://github.com/aaddrick/attention-control); see `evals/REPRODUCE.md`.

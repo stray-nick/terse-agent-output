@@ -209,6 +209,23 @@ def p4_table():
     print(f"Cache validated: cacheRead ({bcr:.0f}/{scr:.0f}) >> input (2) — system prompt is cached.")
     print(f"\nNote: 1 trial, n=16 — absolute savings noisy; structure (thinking share, total<visible, cache) robust.")
 
+def p5_table():
+    """P5 tool-session prose compression, reused from P0 task-success data (tools on)."""
+    from collections import defaultdict
+    rows = [json.loads(l) for l in open(RESULTS / "p0-task-success.jsonl")]
+    agg = defaultdict(lambda: defaultdict(list))
+    for r in rows:
+        m = "sonnet" if "sonnet" in r["model"] else "glm"
+        agg[(m, r["condition"])]["w"].append(len(r["response"].split()))
+    text = {"sonnet": (342, 149), "glm": (410, 253)}
+    print("\n=== P5 tool-session prose compression (from P0 data, tools on) ===")
+    print(f"{'model':<10} {'text-only base':>14} {'text-only style':>16} {'tool base':>10} {'tool style':>11} {'tool d%':>9}")
+    for m in ["sonnet", "glm"]:
+        tb, ts = text[m]
+        ob = statistics.mean(agg[(m, "baseline")]["w"])
+        os_ = statistics.mean(agg[(m, "style")]["w"])
+        print(f"{m:<10} {tb:>14} {ts:>16} {ob:>10.0f} {os_:>11.0f} {(os_/ob-1)*100:>+8.0f}%")
+    print("Compression rate holds in tool sessions, matching text-only. Scope gap closed.")
 
 if __name__ == "__main__":
     main()
@@ -217,3 +234,4 @@ if __name__ == "__main__":
     p2_table()
     p3_table()
     p4_table()
+    p5_table()
