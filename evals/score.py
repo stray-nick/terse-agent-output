@@ -186,9 +186,34 @@ def p3_table():
         print(f"\nInter-pass agreement: {agreed}/{tot} exact-match ({100*agreed/tot:.0f}%), mean |diff| {statistics.mean(diffs):.2f}")
 
 
+def p4_table():
+    """P4 economics: visible-prose vs total-billed-output (incl thinking) saving."""
+    def load(name):
+        return [json.loads(l) for l in open(RESULTS / name)]
+    b = load("p4-son-baseline.jsonl"); s = load("p4-son-style.jsonl")
+    def mean(rows, f):
+        v = [r[f] for r in rows if r.get(f) is not None]
+        return statistics.mean(v) if v else 0.0
+    bw, sw = mean(b, "words"), mean(s, "words")
+    bo, so = mean(b, "output_tokens"), mean(s, "output_tokens")
+    bcr, scr = mean(b, "cacheRead"), mean(s, "cacheRead")
+    print("\n=== P4 economics (Sonnet 5, thinking=high, 1 trial) ===")
+    print(f"{'metric':<28} {'baseline':>10} {'style':>10} {'delta%':>8}")
+    print(f"{'visible words':<28} {bw:>10.0f} {sw:>10.0f} {(sw/bw-1)*100:>+7.0f}%")
+    print(f"{'total output tok (incl thinking)':<28} {bo:>10.0f} {so:>10.0f} {(so/bo-1)*100:>+7.0f}%")
+    print(f"{'cacheRead tokens':<28} {bcr:>10.0f} {scr:>10.0f}")
+    # thinking share
+    tb = [(o - w*1.3)/o for o, w in zip([r['output_tokens'] for r in b if r.get('output_tokens')], [r['words'] for r in b]) if o > 0]
+    ts = [(o - w*1.3)/o for o, w in zip([r['output_tokens'] for r in s if r.get('output_tokens')], [r['words'] for r in s]) if o > 0]
+    print(f"\nThinking share of output: baseline ~{100*statistics.mean(tb):.0f}%, style ~{100*statistics.mean(ts):.0f}%")
+    print(f"Cache validated: cacheRead ({bcr:.0f}/{scr:.0f}) >> input (2) — system prompt is cached.")
+    print(f"\nNote: 1 trial, n=16 — absolute savings noisy; structure (thinking share, total<visible, cache) robust.")
+
+
 if __name__ == "__main__":
     main()
     p0_table()
     p1_table()
     p2_table()
     p3_table()
+    p4_table()

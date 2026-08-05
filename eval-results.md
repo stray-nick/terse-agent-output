@@ -61,7 +61,9 @@ The rule injects ~3,900 cached-input tokens per turn. It saves ~252 output token
 | Gemini-3.1-pro | 180 | $0.00117 | $0.00180 | **saves $0.00063** |
 | GLM 5.2 Fast | 204 | $0.00006 | $0.00012 | **saves $0.00006** |
 
-At 1,000 responses/day on Opus 5: ~$13/day saved. The rule occupies 0.4–2% of the context window. It doesn't compound — same system prompt every turn.
+At 1,000 responses/day on Opus 5: ~$13/day saved (visible-prose basis). The rule occupies 0.4–2% of the context window. It doesn't compound — same system prompt every turn.
+
+**Caveat — thinking tokens (P4).** The table above counts *visible prose* only. On thinking=high models, reasoning tokens are billed at output price and the style compresses them less than visible prose. A capture on Sonnet 5 (thinking=high, 1 trial) found thinking is ~55–64% of total billed output, and total-output compression (−14%) is smaller than visible-prose compression (−19%). So the real per-response savings on thinking=high models are lower than the visible-prose table implies; the $13/day figure is an upper bound for thinking=high models, not a measured total. The **cache assumption is validated**: cacheRead ≈ 100–120K tokens vs input = 2, so the system prompt is fully cached and the warm-cache basis is sound. See the P4 capture in `evals/`.
 
 ![Token economics](charts/07-token-economics.png)
 
