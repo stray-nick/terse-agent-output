@@ -8,40 +8,31 @@ Agents write too much and hedge too often. This rule fixes both. It is a discipl
 
 ## Install
 
-Two files for OMP/Pi. `terse.md` is the style. `no-forbidden-openers.md` is an optional enforcement rule. `claude/terse.md` is the Claude Code variant. Download from the [latest release](https://github.com/stray-nick/terse-agent-output/releases/latest) or copy from this repo.
+One style, three harnesses. Pick your harness:
 
-### OMP
+| Harness | Style | Enforcement | Directory |
+|---|---|---|---|
+| **OMP** | `omp/terse.md` | `omp/no-forbidden-openers.md` (TTSR) | [`omp/`](omp/) |
+| **Pi** | `pi/terse.md` | none (no stream rules) | [`pi/`](pi/) |
+| **Claude Code** | `claude/terse.md` | none (no stream rules) | [`claude/`](claude/) |
 
-Download and copy both files to `~/.omp/agent/rules/`:
+OMP and Pi share the same style file. Claude Code uses a variant with Claude frontmatter and the TTSR enforcement section removed. Each harness directory has its own install README.
+
+Quick install:
 
 ```bash
+# OMP (style + enforcement)
 curl -L -o ~/.omp/agent/rules/terse.md https://github.com/stray-nick/terse-agent-output/releases/latest/download/terse.md
 curl -L -o ~/.omp/agent/rules/no-forbidden-openers.md https://github.com/stray-nick/terse-agent-output/releases/latest/download/no-forbidden-openers.md
-```
 
-`terse.md` is `alwaysApply: true` — OMP injects it into the system prompt every turn. It survives `/compact`. `no-forbidden-openers.md` is a TTSR (Time-Traveling Stream Rules) rule that aborts forbidden openers mid-stream and forces a retry.
-
-**TTSR caveat:** the enforcement rule works in interactive sessions. It hangs in `-p` (print) mode. Remove `no-forbidden-openers.md` if you rely on scripted `-p` runs.
-
-### Pi
-
-Pi has the same rule system but no TTSR. Install only the style rule:
-
-```bash
+# Pi (style only)
 curl -L -o ~/.pi/agent/rules/terse.md https://github.com/stray-nick/terse-agent-output/releases/latest/download/terse.md
-```
 
-`terse.md` is `alwaysApply: true` — Pi injects it every turn. Skip `no-forbidden-openers.md`: Pi cannot run stream rules. You get the full output effect; you do not get mid-stream enforcement.
-
-### Claude Code
-
-Claude Code output styles are markdown files with Claude frontmatter. Use `claude/terse.md` — the same style with Claude frontmatter and the OMP-specific enforcement section removed:
-
-```bash
+# Claude Code (style only)
 curl -L -o ~/.claude/output-styles/terse.md https://github.com/stray-nick/terse-agent-output/releases/latest/download/claude-terse.md
 ```
 
-Then select it with `/output-style Terse`, or set it in your settings. Claude Code has no stream rules, so there is no enforcement companion — you get the full output effect, no mid-stream abort.
+**Enforcement caveat (OMP only):** the TTSR rule works in interactive sessions but hangs in `-p` (print) mode. Remove `no-forbidden-openers.md` if you rely on scripted `-p` runs.
 
 ## What it does
 

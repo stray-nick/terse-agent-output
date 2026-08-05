@@ -1,10 +1,10 @@
 # Contributing
 
-Contributions welcome. This is a single rule file plus an eval — the bar is that changes to `terse.md` are backed by eval evidence, not preference.
+Contributions welcome. The bar is that changes to the style are backed by eval evidence, not preference. The canonical style is `omp/terse.md` — `pi/terse.md` is an identical copy and `claude/terse.md` is the Claude Code variant. Change `omp/terse.md` and regenerate the other two.
 
 ## The one rule
 
-**Any change to `terse.md` must include eval evidence it doesn't regress.** The style is proven by measurement, not taste. If you change a rule, run the eval (see `evals/REPRODUCE.md`) on at least one model and show the metrics hold or improve. Changes that improve compression or accuracy without regressing the structural metrics are welcome. Changes that just reword are welcome only if they're clearer and don't change behavior.
+**Any change to `omp/terse.md` must include eval evidence it doesn't regress.** The style is proven by measurement, not taste. If you change a rule, run the eval (see `evals/REPRODUCE.md`) on at least one model and show the metrics hold or improve. Changes that improve compression or accuracy without regressing the structural metrics are welcome. Changes that just reword are welcome only if they're clearer and don't change behavior.
 
 ## What to contribute
 

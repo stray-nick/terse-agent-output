@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here.
 
+## [Unreleased]
+
+### Changed
+
+- Restructured for three harnesses. Per-harness directories: `omp/` (style + TTSR enforcement), `pi/` (style, identical to OMP), `claude/` (Claude Code variant). The canonical style is `omp/terse.md`. Each harness directory has its own install README.
+- Added Claude Code support: `claude/terse.md` (Claude frontmatter, TTSR enforcement section removed) with install via `~/.claude/output-styles/` and `/output-style Terse`.
+
 ## [0.1.0] — 2026-08-05
 
 Initial release.
