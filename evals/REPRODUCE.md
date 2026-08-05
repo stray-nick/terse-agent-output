@@ -56,7 +56,7 @@ The candidate condition appends the style body (`terse.md`) to the user prompt v
 | GLM 5.2 Fast | `glm-5p2-fast` | 300K | default | 2026-08-04 |
 | Claude (direct) | Claude CLI | 200K | high | recorded run "002" |
 
-### Local harness patches (not committed to this repo)
+### Local harness patches (committed in `evals/harness/`)
 
 The eval run used three local patches to the attention-control harness, because OMP's print mode has intermittent failure modes the upstream harness aborts on. These are environment-specific workarounds, not part of the eval logic:
 
@@ -64,7 +64,7 @@ The eval run used three local patches to the attention-control harness, because 
 2. **Continue-on-failure** (`run_evals.py`) — upstream raises and aborts the whole run when one case fails all retries. Patched to `continue` past the failed case and log a `SKIP`, so one triple-hang doesn't scrap a 96-response run.
 3. **Budget cap** (`run_evals.py`) — the default `--budget-usd 25` was raised to 75 to accommodate the Opus 5 run's cost.
 
-The GLM run skipped 2 of 96 responses (`complex-plan` trial 2, `verbatim-error` trial 2) after triple-hang retries — before the watchdog shim's stdin fix. This is why GLM has 94 responses, not 96.
+The GLM run initially skipped 2 of 96 responses (`complex-plan` trial 2, `verbatim-error` trial 2) after triple-hang retries — before the watchdog shim's stdin fix. Both were re-run after the fix (with `--allow-provenance-drift`, since the watchdog shim had evolved). The 2 filled rows use a slightly later runner config; the rest use the original. GLM is now 96 responses, restoring the design to 576.
 
 ### Cost
 

@@ -114,14 +114,14 @@ The dev split is hand-written. To test whether the effect overfits it, we wrote 
 
 | Model | Split | Baseline words | Style words | Δ words | Style passive | Style long-sent |
 |---|---|---|---|---|---|---|
-| GLM 5.2 Fast | dev | 410 | 253 | −38% | 0.4 | 4% |
+| GLM 5.2 Fast | dev | 427 | 253 | −41% | 0.4 | 4% |
 | | held-out | 447 | 289 | −35% | 0.2 | 4% |
 | Sonnet 5 | dev | 342 | 149 | −56% | 0.1 | 3% |
 | | held-out | 351 | 164 | −53% | 0.1 | 8% |
 | GPT-5.6-terra | dev | 451 | 225 | −50% | 0.1 | 1% |
 | | held-out | 273 | 125 | −54% | 0.0 | 1% |
 
-**The effect generalizes.** Word reduction holds within 3–4 points of the dev split on every model (GLM −35% vs −38%, Sonnet −53% vs −56%, GPT −54% vs −50%). Passives and long-sentence rates match within noise. The dev-split overfitting concern is retired: the style's effect is not an artifact of the tuned prompt set. The one slightly-worse cell (Sonnet long-sentences, 8% held-out vs 3% dev) is noise on a small metric — 8% is still far below the 28% baseline.
+**The effect generalizes.** Word reduction holds within 3–4 points of the dev split on every model (GLM −35% vs −41%, Sonnet −53% vs −56%, GPT −54% vs −50%). Passives and long-sentence rates match within noise. The dev-split overfitting concern is retired: the style's effect is not an artifact of the tuned prompt set. The one slightly-worse cell (Sonnet long-sentences, 8% held-out vs 3% dev) is noise on a small metric — 8% is still far below the 28% baseline.
 
 ## Blind judge: does compression cost quality?
 
