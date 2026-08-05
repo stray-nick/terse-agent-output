@@ -38,7 +38,7 @@ curl -L -o ~/.pi/agent/rules/terse.md https://github.com/stray-nick/terse-agent-
 Claude Code output styles are markdown files with Claude frontmatter. Use `claude/terse.md` — the same style with Claude frontmatter and the OMP-specific enforcement section removed:
 
 ```bash
-curl -L -o ~/.claude/output-styles/terse.md https://raw.githubusercontent.com/stray-nick/terse-agent-output/main/claude/terse.md
+curl -L -o ~/.claude/output-styles/terse.md https://github.com/stray-nick/terse-agent-output/releases/latest/download/claude-terse.md
 ```
 
 Then select it with `/output-style Terse`, or set it in your settings. Claude Code has no stream rules, so there is no enforcement companion — you get the full output effect, no mid-stream abort.
