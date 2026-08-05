@@ -85,5 +85,53 @@ def main():
         )
 
 
+def p0_table():
+    """P0 task-success: per-task-type pass rates by condition (pooled across models)."""
+    from collections import defaultdict
+    rows = [json.loads(l) for l in open(RESULTS / "p0-task-success.jsonl")]
+    agg = defaultdict(lambda: defaultdict(int))
+    for r in rows:
+        agg[(r["task_id"], r["condition"])][r["grade"]] += 1
+    print("\n=== P0 task-success (120 task-runs, tools on, 2 models x 3 trials) ===")
+    print(f"{'task':<22} {'cond':<9} {'pass':>4} {'fail':>4} {'rate':>6}")
+    bp = bf = sp = sf = 0
+    for task in sorted(set(r["task_id"] for r in rows)):
+        for cond in ["baseline", "style"]:
+            g = agg[(task, cond)]
+            p, fl = g.get("pass", 0), g.get("fail", 0)
+            tot = p + fl
+            print(f"{task:<22} {cond:<9} {p:>4} {fl:>4} {p}/{tot}")
+            if cond == "baseline":
+                bp, bf = bp + p, bf + fl
+            else:
+                sp, sf = sp + p, sf + fl
+    print(f"{'TOTAL':<22} baseline {bp}/{bp+bf}  style {sp}/{sp+sf}")
+
+
+def p1_table():
+    """P1 harness-variant: baseline vs published attention-control vs shipped terse (omp) vs claude variant, all no TTSR."""
+    def stats(rows):
+        agg = defaultdict(list)
+        for r in rows:
+            w, pv, pf, lp, cl, op = metrics(r["response"])
+            for k, v in [("w", w), ("pv", pv), ("lp", lp)]:
+                agg[k].append(v)
+        return {k: statistics.mean(v) for k, v in agg.items()}
+    base = stats([r for r in load("omp-dev-baseline-son.jsonl")])
+    pub = stats([r for r in load("omp-dev-candidate-son.jsonl")])
+    c2 = stats([json.loads(l) for l in open(RESULTS / "p1-cond2-ompterse-son.jsonl")])
+    c3 = stats([json.loads(l) for l in open(RESULTS / "p1-cond3-claudeterse-son.jsonl")])
+    print("\n=== P1 harness-variant (Sonnet 5, dev split, no TTSR) ===")
+    print(f"{'condition':<42} {'n':>3} {'words':>6} {'passive':>7} {'longSent':>8}")
+    print(f"{'cond1 baseline (no style)':<42} {48:>3} {base['w']:>6.0f} {base['pv']:>7.1f} {base['lp']*100:>7.0f}%")
+    print(f"{'attention-control (published numbers)':<42} {48:>3} {pub['w']:>6.0f} {pub['pv']:>7.1f} {pub['lp']*100:>7.0f}%")
+    print(f"{'cond2 omp/terse.md (shipped, no TTSR)':<42} {48:>3} {c2['w']:>6.0f} {c2['pv']:>7.1f} {c2['lp']*100:>7.0f}%")
+    print(f"{'cond3 claude/terse.md (no TTSR)':<42} {48:>3} {c3['w']:>6.0f} {c3['pv']:>7.1f} {c3['lp']*100:>7.0f}%")
+    print(f"\nProvenance: shipped terse ({c2['w']:.0f}w) vs published attention-control ({pub['w']:.0f}w), delta {c2['w']-pub['w']:+.0f}w")
+    print(f"Placebo: omp with Enforcement ({c2['w']:.0f}w) vs claude without ({c3['w']:.0f}w), delta {c2['w']-c3['w']:+.0f}w")
+
+
 if __name__ == "__main__":
     main()
+    p0_table()
+    p1_table()
