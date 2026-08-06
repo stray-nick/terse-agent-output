@@ -36,7 +36,15 @@ curl -L -o ~/.claude/output-styles/terse.md https://github.com/stray-nick/terse-
 
 ## What it does
 
-Reshapes output. Same work done. 574 responses across six models (Opus 5, GPT-5.6-terra, Gemini-3.1-pro, Sonnet 5, GLM 5.2 Fast, Claude): word count −38 to −67%, passive voice −76 to −95%, long sentences to 0–4%. No degradation observed in a small preliminary task-accuracy spot check. Net cost savings on every model — output tokens saved outweigh cached input tokens added, conditional on cache hits.
+Reshapes output. Same work done. Backed by a full eval, not a spot check:
+
+- **576 prose responses across six models** (Opus 5, GPT-5.6-terra, Gemini-3.1-pro, Sonnet 5, GLM 5.2 Fast, Claude): word count −38 to −67%, passive voice −76 to −95%, long sentences to 0–4%.
+- **Held-out generalization**: 16 fresh prompts reproduce the effect within 3–4 points on three models — the dev-split overfitting concern is retired.
+- **Task-success (120 tool-using runs, 2 models)**: totals within noise (baseline 57/60, style 56/60). The style improves honesty probes; one weak spot — on ambiguous tasks it acts rather than asks.
+- **Blind judge (91 judgments, blind to condition)**: styled responses are slightly *more* correct and better calibrated; the real cost is completeness (−0.93 on a 1–5 scale) — compression leaves some of what was asked unsaid.
+- **Economics**: net cost savings on every model, conditional on cache hits (cache assumption validated). On thinking=high models the visible-prose savings overstate total-billed savings — thinking is ~55–64% of output and compresses less.
+
+See [`eval-results.md`](eval-results.md) for the full evaluation and [`evals/`](evals/) for raw data, prompts, harnesses, and `score.py` (regenerates every table). The honest limitations — including the completeness cost and the clarifying-question weakness — are documented there, not hidden.
 
 ## The three fixes over attention-control
 
