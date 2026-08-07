@@ -37,15 +37,13 @@ curl -L -o ~/.claude/output-styles/terse.md https://github.com/stray-nick/terse-
 
 ## What it does
 
-Reshapes output. Same work done. Backed by a full eval, not a spot check:
+Reshapes output. Same work done. Two evals, neither a spot check:
 
-- **576 prose responses across six models** (Opus 5, GPT-5.6-terra, Gemini-3.1-pro, Sonnet 5, GLM 5.2 Fast, Claude): word count −41 to −67%, passive voice −76 to −95%, long sentences to 0–4%.
-- **Held-out generalization**: 16 fresh prompts reproduce the effect within 3–4 points on three models — the dev-split overfitting concern is retired.
-- **Task-success (120 tool-using runs, 2 models)**: totals within noise (baseline 57/60, style 56/60). The style improves honesty probes; one weak spot — on ambiguous tasks it acts rather than asks.
-- **Blind judge (91 judgments, blind to condition)**: styled responses are slightly *more* correct and better calibrated; the real cost is completeness (−0.93 on a 1–5 scale) — compression leaves some of what was asked unsaid.
-- **Economics**: net cost savings on every model, conditional on cache hits (cache assumption validated). On thinking=high models the visible-prose savings overstate total-billed savings — thinking is ~55–64% of output and compresses less.
+- **v2 — the shipped `terse.md`** on 39 fresh cases × 9 models (~$255, every response metered): word ratio 0.29–0.80, U-shaped — the mid-tier coding workhorses compress hardest (Sonnet 0.29, Grok/Gemini/Terra ~0.50), the flagships (Opus 0.68, Sol 0.80) and the cheapest tier (Luna 0.76) resist. Every model's CI excludes 1.0. Compression is roughly thinking-level invariant. Task success holds (Sonnet 20/22 → 24/24 mechanical; the old clarifying-question regression did not replicate on Sonnet — GLM leg untested). A fresh-set blind judge finds a quality cost on all four dimensions, largest on completeness (−1.24).
+- **v1 — six models, 576 responses** (`attention-control.md`): word count −41 to −67%, passive −76 to −95%, long sentences 0–4%; held-out generalization within 3–4 points; task totals within noise (57/60 vs 56/60); blind judge's main cost was completeness (−0.93).
+- **Economics**: net savings on every model, conditional on cache hits; real $/response is now metered in the v2 data ($0.013–$0.65).
 
-See [`eval-results.md`](eval-results.md) for the full evaluation and [`evals/`](evals/) for raw data, prompts, harnesses, and `score.py` (regenerates every table). The honest limitations — including the completeness cost and the clarifying-question weakness — are documented there, not hidden.
+See [`eval-results.md`](eval-results.md) (v1) and [`eval-results-v2.md`](eval-results-v2.md) (v2) for the full evaluations, and [`evals/`](evals/) for raw data, prompts, harnesses, and `score.py` (regenerates every v1 table). The honest limitations — including the completeness cost, the U-shaped compression, and the GLM-untested legs — are documented, not hidden.
 
 ## The three fixes over attention-control
 

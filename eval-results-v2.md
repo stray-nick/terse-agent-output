@@ -26,6 +26,8 @@ Raw data: `evals/results/v2/` (breadth, axis, task-depth, judge). Regenerate tab
 | **Opus 5** | **0.68** | 0.51–0.90 | | **Luna** | **0.76** | 0.68–0.85 |
 | **Sol** | **0.80** | 0.70–0.92 | | | | |
 
+![v2 breadth: compression ratio with 95% CI](charts/v2-breadth.png)
+
 Every CI excludes 1.0 — *compresses output on every model tested*. But the old headline "word count drops 41–67%" is dead. The effect is **8–71%**, U-shaped: the mid-tier coding workhorses compress hardest (sonnet 0.29, grok/gemini/terra ~0.50), and the poles resist — the flagships (sol 0.80, opus 0.68) and the cheapest tier (luna 0.76). The six-model run could not see this because it never varied the price tier this way.
 
 ## Thinking axis: the interaction is level-invariant
@@ -38,6 +40,8 @@ Geo ratio by explicit `--thinking` level (1 trial per cell — see caveat):
 | Terra | 0.51 | 0.59 | 0.54 | 0.53 |
 | Grok 4.5 | 0.52 | 0.57 | 0.59 | 0.54 |
 | Gemini 3.1 | 0.50 | 0.44 | — | 0.39 |
+
+![v2 thinking axis: compression by thinking level](charts/v2-axis.png)
 
 No monotone effect; every explicit level sits within ~0.1 of the model's band. **Word compression does not collapse at high thinking** (P4's finding that thinking tokens compress less is about billed tokens, not words — both true). One caveat: sonnet's no-flag default (0.29) beats all its explicit levels (0.38–0.43). Either "default" is a distinct, more aggressive config, or it is between-run noise — the axis cells are 1 trial, so this gap is flagged, not explained.
 
