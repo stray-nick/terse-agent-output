@@ -96,15 +96,29 @@ This is the trade the style makes. It is not a free win. The mechanical metrics 
 
 ## What does it cost?
 
-The v2 campaign was the first fully metered eval in this repo. Every prose response carries real token usage (read from the OMP session file after each call) and a computed dollar cost (billed against researched 2026-08 rate-card prices). The spend gates that sequenced the run were fed by these real numbers from the first invocation onward — not estimates.
+The style adds a ~7,200-token system prompt to every turn (cached after the first call, billed at cache-read price). It also compresses output — fewer words means fewer output tokens, and output is 15–50× more expensive than cache-read. The question is whether the output savings offset the prompt overhead, per request, per model.
 
-Metered cost per response (default thinking, cached system prompt):
+Every v2 response was metered: the harness reads token usage from the OMP session file and bills it against researched 2026-08 rate-card prices. So the table below is not an estimate — it is the measured dollar cost of each response, baseline vs styled, on the same 39 cases.
 
-![Metered cost per response by model](charts/v2-cost.png)
+| Model | Baseline $/req | Style $/req | Δ (impact) |
+|---|---:|---:|---:|
+| **Opus 5** | $0.718 | $0.591 | **−$0.127** |
+| Grok 4.3 | $0.043 | $0.027 | −$0.016 |
+| Terra | $0.142 | $0.127 | −$0.015 |
+| Haiku 4.5 | $0.056 | $0.042 | −$0.014 |
+| Grok 4.5 | $0.093 | $0.080 | −$0.013 |
+| Sonnet 5 | $0.140 | $0.130 | −$0.011 |
+| **Sol** | $0.332 | $0.359 | **+$0.027** |
+| **Gemini 3.1** | $0.124 | $0.133 | **+$0.010** |
+| **Luna** | $0.013 | $0.013 | **+$0.000** |
 
-The range is 50×: Luna at $0.013/response to Opus at $0.654. The ~7.2K-token cached system prompt dominates the cheap-tier cost (cache reads are nearly free on Luna); output price dominates the premium tier (Opus bills $25/Mtok output). The full campaign spent ~$255 of the $400 doubled budget.
+![Per-request cost impact of applying the style](charts/v2-cost-impact.png)
 
-On the v1 six-model data, net per-response savings (visible-prose basis, cached, researched rates) were positive on every model — smallest on the cheap tiers (GLM $0.00008, Gemini $0.00063), largest on Opus ($0.01522). The P4 economics capture found that on thinking=high models, thinking tokens are ~55–64% of total billed output and compress less than visible prose, so the visible-prose savings overstate the real total-billed savings. The $15/day Opus figure (at 1,000 responses/day) is an upper bound for thinking=high models, not a measured total.
+The style **saves money on 6 of 9 models**, with the biggest savings on the most expensive one: Opus saves $0.127 per request, which at 1,000 requests/day is ~$127/day. The mid-tier workhorses (Sonnet, Terra, Grok, Haiku) all save $0.01–0.02 per request — modest in absolute terms but consistently positive.
+
+Three models cost slightly more with the style applied. Sol (+$0.027) and Gemini (+$0.010) have either weak compression (Sol compresses only 20%) or a very short baseline (Gemini averages 206 words — there is little output to save, so the 7,200-token prompt overhead exceeds the output savings). Luna is essentially break-even (+$0.0001 — within noise). The pattern: **the style pays for itself when the baseline output is long enough that compression saves more output tokens than the cached prompt costs to inject.** On short-baseline or weak-compression models, the prompt overhead is a net tax.
+
+One caveat from the v1 economics capture (P4): on thinking=high models, thinking tokens are ~55–64% of total billed output and compress less than visible prose. The numbers above were measured at default thinking, where output is mostly visible prose and the compression transfers directly to cost. At high thinking, the real per-request savings would be smaller than the table implies — the thinking portion of the bill shrinks less. The v2 meter captures total output (including thinking) from the session file, so the default-thinking deltas above are real total-billed impact, not visible-prose estimates. But the high-thinking leg of that story is only partially measured (the axis runs have their own cost data, not yet aggregated into this table).
 
 ## What we knew before (v1, six models)
 

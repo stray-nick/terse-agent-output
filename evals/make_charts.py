@@ -223,22 +223,31 @@ ax.legend(frameon=False, loc="upper right")
 ax.set_title("Blind judge: baseline vs style (39 pairs x 2 passes)\nDelta labelled; all four negative")
 fig.tight_layout(); fig.savefig(CHARTS / "v2-judge.png", dpi=150); plt.close(fig)
 
-# ---- v2-cost: metered $/response by model, log scale ----
-cost = []
+# ---- v2-cost-impact: per-request cost delta from applying the style ----
+import json as _json
+cost_impact = []
 for m in V2M:
-    rows = score.load(str(V2 / f"baseline-{m}.jsonl")) + score.load(str(V2 / f"candidate-{m}.jsonl"))
-    cs = [r.get("cost_usd") or 0 for r in rows]
-    cost.append((m, sum(cs) / len(cs) if cs else 0))
-cost.sort(key=lambda x: x[1])
-fig, ax = plt.subplots(figsize=(9, 4.5))
-ys = range(len(cost))
-ax.barh(ys, [c[1] for c in cost], color="#1e5ab8")
-for y, c in zip(ys, cost):
-    ax.text(c[1] * 1.1, y, f"${c[1]:.3f}", va="center", fontsize=9)
-ax.set_yticks(list(ys)); ax.set_yticklabels([V2L[c[0]] for c in cost])
-ax.set_xscale("log")
-ax.set_xlabel("$ per response (log scale)")
-ax.set_title("Metered cost per response (39 fresh cases, default thinking)")
-fig.tight_layout(); fig.savefig(CHARTS / "v2-cost.png", dpi=150); plt.close(fig)
+    b = [r.get("cost_usd") or 0 for r in score.load(str(V2 / f"baseline-{m}.jsonl"))]
+    c = [r.get("cost_usd") or 0 for r in score.load(str(V2 / f"candidate-{m}.jsonl"))]
+    bm, cm = statistics.mean(b), statistics.mean(c)
+    cost_impact.append((m, V2L[m], bm, cm, cm - bm))
+cost_impact.sort(key=lambda x: x[4])  # biggest savings at top
+fig, ax = plt.subplots(figsize=(9, 5))
+ys = range(len(cost_impact))
+deltas = [r[4] for r in cost_impact]
+colors = ["#1e5ab8" if d < 0 else "#c02020" for d in deltas]
+ax.barh(ys, deltas, color=colors, height=0.6)
+ax.axvline(0, color="#404040", lw=0.8)
+for y, r in zip(ys, cost_impact):
+    d = r[4]
+    offset = 0.003 if d >= 0 else -0.003
+    ha = "left" if d >= 0 else "right"
+    ax.text(d + offset, y, f"${d:+.4f}", va="center", ha=ha, fontsize=9,
+            color="#c02020" if d >= 0 else "#1e5ab8", fontweight="bold")
+ax.set_yticks(list(ys)); ax.set_yticklabels([r[1] for r in cost_impact])
+ax.set_xlim(min(deltas) * 1.35, max(deltas) * 1.35)
+ax.set_xlabel("$ per request (style minus baseline; left = saves, right = costs)")
+ax.set_title("Per-request cost impact of applying the style\n(39 fresh cases, default thinking, metered)")
+fig.tight_layout(); fig.savefig(CHARTS / "v2-cost-impact.png", dpi=150); plt.close(fig)
 
 print("charts written:", sorted(p.name for p in CHARTS.iterdir() if p.suffix == ".png"))
