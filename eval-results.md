@@ -14,7 +14,7 @@ Two evaluations, run at different times on different case sets:
 
 **v1 (the historical run)** injected the upstream `attention-control.md` on a 16-case dev set, six models, 576 responses, ~$210. This is what the original "Proven across six models" claim came from. Its raw data and `score.py` regenerators are preserved; the numbers appear in the historical section below.
 
-Three models could not be measured: **deepseek-v4-flash-0731, glm-5.2, and kimi-k3** — all Fireworks-hosted, and the Fireworks API key on the run machine was invalid (401 on every attempt, both profiles). They slot back into the same harness when the key is fixed. Their absence is a gap, not a result.
+The three Fireworks-hosted open models (deepseek-v4-flash-0731, glm-5.2, and kimi-k3) were initially blocked by an invalid Fireworks API key. They were measured in a later pass via `pi -p --provider fireworks` — the shopify-proxy extension routes them through the proxy's Anthropic-compatible endpoint; `omp -p` could not load the extension.
 
 ## Does it compress?
 
@@ -78,7 +78,7 @@ On the mechanically graded tasks, the style does not hurt — it if anything hel
 
 The one finding worth dwelling on: **clarifying questions**. The v1 eval found a regression — pooled across Sonnet and GLM, the style went from 6/6 asking a clarifying question (on a genuinely ambiguous "Add caching to this app" prompt) to 3/6, implementing a guessed solution the other 3 times. The style's "do the work you own" rule pushes it to act rather than ask, even when asking is correct.
 
-The v2 run tested this on Sonnet alone (GLM is Fireworks-blocked). Sonnet's style condition asked 3/3 — no regression. The old pooled number was Sonnet 2/3 (one regression row) plus GLM 1/3 (two regression rows). So v2's Sonnet is one better than v1's Sonnet (3/3 vs 2/3, n=3 — a one-row difference). The GLM component, which drove two-thirds of the old regression, is untested. This is a partial non-replication: the Sonnet leg improved, the GLM leg is unknown. The old 6/6 → 3/6 stays in the historical record as what was measured then; the new 3/3 is what was measured now, on one model, on a fresh case.
+The v2 run tested this on Sonnet alone (the task harness uses `omp`, not `pi`; a pi-based task runner for GLM was not built). Sonnet's style condition asked 3/3 — no regression. The old pooled number was Sonnet 2/3 (one regression row) plus GLM 1/3 (two regression rows). So v2's Sonnet is one better than v1's Sonnet (3/3 vs 2/3, n=3 — a one-row difference). The GLM component, which drove two-thirds of the old regression, is untested. This is a partial non-replication: the Sonnet leg improved, the GLM leg is unknown. The old 6/6 → 3/6 stays in the historical record as what was measured then; the new 3/3 is what was measured now, on one model, on a fresh case.
 
 ## What does an independent judge see?
 
