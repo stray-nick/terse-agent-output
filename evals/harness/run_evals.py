@@ -56,6 +56,10 @@ PRICING_USD_PER_MTON = {
     "glm-5.2":                {"input": 1.40, "output": 4.40,  "cache_read": 0.14, "cache_write": 1.75},
     "kimi-k3":                {"input": 3.00, "output": 15.00, "cache_read": 0.30, "cache_write": 3.75},
     "deepseek-v4-flash-0731": {"input": 0.14, "output": 0.28,  "cache_read": 0.028, "cache_write": 0.18},
+    # Full account-scoped Fireworks IDs (used by pi --provider fireworks via shopify-proxy)
+    "fireworks:accounts/fireworks/models/deepseek-v4-flash-0731": {"input": 0.14, "output": 0.28,  "cache_read": 0.028, "cache_write": 0},
+    "fireworks:accounts/fireworks/routers/glm-5p2-fast":          {"input": 2.10, "output": 6.60,  "cache_read": 0.21,  "cache_write": 0},
+    "fireworks:accounts/fireworks/models/kimi-k3":                {"input": 3.00, "output": 15.00, "cache_read": 0.30,  "cache_write": 0},
 }
 
 # The fields that must hold constant across every row of one results file.
