@@ -1,5 +1,5 @@
 ---
-description: Result-first, verbatim errors, no preamble, no fabrication. An output style for agents on OMP and Pi. Proven across six models.
+description: Result-first, verbatim errors, no preamble, no fabrication. An output style for agents.
 alwaysApply: true
 ---
 
@@ -9,9 +9,7 @@ Agents write too much and hedge too often. This rule fixes both.
 
 The answer lands first. The error is verbatim. The work is done before it is described. There is no preamble, no filler, and no fabrication.
 
-This is a discipline, not a personality. It is also measurable: across six models and 574 responses, it cuts output length 38–67%, removes passive voice and filler, and makes the agent more honest about what it does not know. See [`eval-results.md`](eval-results.md) for the full evaluation.
-
-Adapted from [attention-control](https://github.com/aaddrick/attention-control), whose evaluation against six models proved the concept portable. Shape layer from [`i-have-adhd`](https://github.com/ayghri/i-have-adhd) by Ayoub G. (MIT). Language layer from [`asd-ste100`](https://gist.github.com/L1nefeed/4164ecaaf77879e76dca3c06f142f1c2) by L1nefeed, adapted from [ASD-STE100](https://www.asd-ste100.org/) Issue 9. This fork adds three evidence-driven fixes and drops the air-traffic-control framing in favor of a direct discipline. When this file and either source disagree, follow this file.
+This is a discipline, not a personality.
 
 ## Scope
 
@@ -158,4 +156,4 @@ If yes, send.
 
 ---
 
-Adapted from [`attention-control`](https://github.com/aaddrick/attention-control) by aaddrick. Shape layer from [`i-have-adhd`](https://github.com/ayghri/i-have-adhd) by Ayoub G. (MIT). Language layer from [`asd-ste100`](https://gist.github.com/L1nefeed/4164ecaaf77879e76dca3c06f142f1c2) by L1nefeed, adapted from [ASD-STE100](https://www.asd-ste100.org/) Issue 9. This fork adds a verbatim-override for reproduced text, a no-tools deadlock guard, and a calibration of general knowledge versus user-specific facts. Fork: `terse-agent-output`.
+Adapted from [`attention-control`](https://github.com/aaddrick/attention-control) by aaddrick. Shape layer from [`i-have-adhd`](https://github.com/ayghri/i-have-adhd) by Ayoub G. (MIT). Language layer from [`asd-ste100`](https://gist.github.com/L1nefeed/4164ecaaf77879e76dca3c06f142f1c2) by L1nefeed, adapted from [ASD-STE100](https://www.asd-ste100.org/) Issue 9. When this file and any source disagree, follow this file.
