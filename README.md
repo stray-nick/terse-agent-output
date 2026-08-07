@@ -4,7 +4,7 @@ An output style for agents. Result-first, verbatim errors, no preamble, no fabri
 
 Agents write too much and hedge too often. This rule fixes both. It is a discipline, not a personality — and it is measurable. See [`eval-results.md`](eval-results.md) for the full evaluation, and [`evals/`](evals/) for the raw responses, prompts, and scoring script (`python3 evals/score.py` reproduces the tables).
 
-![Word count: baseline vs style, six models](charts/02-word-count.png)
+![Word ratio by model, 39 fresh cases, 95% CI](charts/v2-breadth.png)
 
 ## Install
 
@@ -43,7 +43,7 @@ Reshapes output. Same work done. Two evals, neither a spot check:
 - **v1 — six models, 576 responses** (`attention-control.md`): word count −41 to −67%, passive −76 to −95%, long sentences 0–4%; held-out generalization within 3–4 points; task totals within noise (57/60 vs 56/60); blind judge's main cost was completeness (−0.93).
 - **Economics**: net savings on every model, conditional on cache hits; real $/response is now metered in the v2 data ($0.013–$0.65).
 
-See [`eval-results.md`](eval-results.md) (v1) and [`eval-results-v2.md`](eval-results-v2.md) (v2) for the full evaluations, and [`evals/`](evals/) for raw data, prompts, harnesses, and `score.py` (regenerates every v1 table). The honest limitations — including the completeness cost, the U-shaped compression, and the GLM-untested legs — are documented, not hidden.
+See [`eval-results.md`](eval-results.md) for the full data analysis — the shipped style on 39 fresh cases × 9 models, thinking-level effects, task success, blind-judge quality costs, and metered costs. Raw data, prompts, harnesses, and `score.py` (regenerates every table/chart) are in [`evals/`](evals/). The honest limitations — the U-shaped compression, the completeness cost, and the GLM-untested legs — are documented, not hidden.
 
 ## The three fixes over attention-control
 
