@@ -129,6 +129,7 @@ fig.tight_layout(); fig.savefig(CHARTS / "09-trim-tradeoff.png", dpi=150); plt.c
 
 # ---------- v2 charts ----------
 V2 = REPO / "evals/results/v2"
+
 def _case_mean_words(path):
     agg = defaultdict(list)
     for r in score.load(path):
@@ -136,47 +137,108 @@ def _case_mean_words(path):
     return {k: statistics.mean(v) for k, v in agg.items()}
 
 def v2_ratio(basep, candp):
+    """Return (geo_ratio, lo, hi, n) plus baseline mean words for bar drawing."""
     b = _case_mean_words(basep)
     c = _case_mean_words(candp)
     ks = sorted(set(b) & set(c))
     lr = [math.log(c[k] / max(b[k], 1)) for k in ks]
     m_, sd = statistics.mean(lr), statistics.stdev(lr)
     sem = sd / math.sqrt(len(ks))
-    return math.exp(m_), math.exp(m_ - 1.96 * sem), math.exp(m_ + 1.96 * sem), len(ks)
+    bmean = statistics.mean(b[k] for k in ks)
+    return math.exp(m_), math.exp(m_ - 1.96 * sem), math.exp(m_ + 1.96 * sem), len(ks), bmean
 
 V2M = ["sonnet-5", "grok-4.3", "gemini-3.1", "terra", "grok-4.5", "haiku-4-5", "opus-5", "luna", "sol"]
-V2L = ["Sonnet", "Grok 4.3", "Gemini", "Terra", "Grok 4.5", "Haiku", "Opus", "Luna", "Sol"]
-ratios = []
+V2L = {"sonnet-5": "Sonnet", "grok-4.3": "Grok 4.3", "gemini-3.1": "Gemini", "terra": "Terra",
+       "grok-4.5": "Grok 4.5", "haiku-4-5": "Haiku", "opus-5": "Opus", "luna": "Luna", "sol": "Sol"}
+
+# ---- v2-breadth: paired bars baseline vs style, CI whiskers on the style bar ----
+breadth = []
 for m in V2M:
     r = v2_ratio(V2 / f"baseline-{m}.jsonl", V2 / f"candidate-{m}.jsonl")
-    ratios.append((m, r))
-ratios.sort(key=lambda x: x[1][0])
-fig, ax = plt.subplots(figsize=(10, 4.6))
-xs = range(len(ratios))
-means = [r[1][0] for r in ratios]; lo = [r[1][0] - r[1][1] for r in ratios]; hi = [r[1][2] - r[1][0] for r in ratios]
-ax.errorbar(xs, means, yerr=[lo, hi], fmt="o", color="#1e5ab8", capsize=4, markersize=7)
-ax.axhline(1.0, color="#b0b0b0", ls="--")
-for x, m in zip(xs, ratios):
-    ax.text(x, means[x] + 0.05, f"{means[x]:.2f}", ha="center", fontsize=9)
-ax.set_xticks(list(xs)); ax.set_xticklabels([dict(zip(V2M, V2L))[r[0]] for r in ratios])
-ax.set_ylabel("styled / baseline word ratio"); ax.set_ylim(0, 1.15)
-ax.set_title("v2 breadth: compression ratio on 39 fresh cases (95% CI)")
+    breadth.append((m, *r))
+breadth.sort(key=lambda x: x[1])  # by ratio ascending (strongest compression left)
+fig, ax = plt.subplots(figsize=(11, 5))
+xs = range(len(breadth)); w = 0.38
+for i, (m, ratio, lo, hi, n, bmean) in enumerate(breadth):
+    cand = bmean * ratio
+    cand_lo = bmean * lo
+    cand_hi = bmean * hi
+    ax.bar(i - w/2, bmean, w, color="#b0b0b0", label="baseline" if i == 0 else "")
+    ax.bar(i + w/2, cand, w, color="#1e5ab8", label="style" if i == 0 else "")
+    # CI whisker on the style bar
+    ax.errorbar(i + w/2, cand, yerr=[[cand - cand_lo], [cand_hi - cand]], fmt="none",
+                ecolor="#1e5ab8", capsize=4, elinewidth=1.5)
+    ax.text(i - w/2, bmean + 8, f"{bmean:.0f}", ha="center", va="bottom", fontsize=8, color="#666")
+    ax.text(i + w/2, cand_hi + 12, f"{cand:.0f}", ha="center", va="bottom", fontsize=8, color="#1e5ab8")
+    ax.text(i, -28, f"{ratio:.2f}", ha="center", va="top", fontsize=9, fontweight="bold")
+ax.set_xticks(list(xs)); ax.set_xticklabels([V2L[b[0]] for b in breadth], fontsize=10)
+ax.set_ylabel("words per response (mean)")
+ax.set_ylim(-40, max(b[5] for b in breadth) * 1.25)
+ax.legend(frameon=False, loc="upper left")
+ax.set_title("Word count: baseline vs style (39 fresh cases)\nratio = style/baseline; whiskers = 95% CI on style")
 fig.tight_layout(); fig.savefig(CHARTS / "v2-breadth.png", dpi=150); plt.close(fig)
 
-# axis curves
-fig, ax = plt.subplots(figsize=(9, 4.6))
+# ---- v2-axis: small multiples, each model's levels vs its own default ----
 AXM = {"sonnet-5": ["low", "medium", "high"], "terra": ["low", "medium", "high"],
        "grok-4.5": ["low", "medium", "high"], "gemini-3.1": ["low", "high"]}
 AXL = {"sonnet-5": "Sonnet", "terra": "Terra", "grok-4.5": "Grok 4.5", "gemini-3.1": "Gemini"}
-for m, lvls in AXM.items():
+# default ratios from the breadth data
+DEFAULTS = {b[0]: b[1] for b in breadth}
+fig, axes = plt.subplots(2, 2, figsize=(9, 6.5))
+for ax, (m, lvls) in zip(axes.flat, AXM.items()):
     pts = []
     for lvl in lvls:
         r = v2_ratio(V2 / f"axis-{m}-{lvl}-baseline.jsonl", V2 / f"axis-{m}-{lvl}-candidate.jsonl")
         pts.append(r[0])
-    ax.plot(range(1, len(lvls) + 1), pts, marker="o", label=AXL[m])
-ax.set_xticks([1, 2, 3]); ax.set_xticklabels(["low", "medium", "high"])
-ax.set_ylabel("styled / baseline word ratio"); ax.legend(frameon=False)
-ax.set_title("v2 thinking axis: compression by thinking level")
-fig.tight_layout(); fig.savefig(CHARTS / "v2-axis.png", dpi=150); plt.close(fig)
+    xpos = range(len(lvls))
+    ax.bar(xpos, pts, 0.5, color="#1e5ab8", alpha=0.7)
+    ax.axhline(DEFAULTS[m], color="#e06000", ls="--", lw=1.5, label=f"default {DEFAULTS[m]:.2f}")
+    for x, v in zip(xpos, pts):
+        ax.text(x, v + 0.01, f"{v:.2f}", ha="center", va="bottom", fontsize=9)
+    ax.set_xticks(list(xpos)); ax.set_xticklabels(lvls, fontsize=9)
+    ax.set_ylim(0, max(max(pts), DEFAULTS[m]) * 1.3)
+    ax.set_title(f"{AXL[m]}  (default {DEFAULTS[m]:.2f})", fontsize=10)
+    ax.legend(frameon=False, fontsize=8, loc="upper right")
+fig.suptitle("Thinking level: compression vs each model's default (dashed)", fontsize=12, y=1.01)
+fig.tight_layout(); fig.savefig(CHARTS / "v2-axis.png", dpi=150, bbox_inches="tight"); plt.close(fig)
+
+# ---- v2-judge: blind judge, paired bars per dimension + delta ----
+jrows = [json.loads(l) for l in open(V2 / "judge-sonnet.jsonl")]
+dims = ["correctness", "completeness", "actionability", "calibration"]
+jb = [statistics.mean([r["scores"]["A"][d] if r["order"] == "bc" else r["scores"]["B"][d]
+                       for r in jrows]) for d in dims]
+jc = [statistics.mean([r["scores"]["B"][d] if r["order"] == "bc" else r["scores"]["A"][d]
+                       for r in jrows]) for d in dims]
+fig, ax = plt.subplots(figsize=(8, 4.5))
+xs = range(len(dims)); w = 0.35
+ax.bar([x - w/2 for x in xs], jb, w, color="#b0b0b0", label="baseline")
+ax.bar([x + w/2 for x in xs], jc, w, color="#1e5ab8", label="style")
+for i, d in enumerate(dims):
+    delta = jc[i] - jb[i]
+    ax.text(i, max(jb[i], jc[i]) + 0.12, f"{delta:+.2f}", ha="center", fontsize=10,
+            color="#c02020" if delta < 0 else "#208020", fontweight="bold")
+ax.set_xticks(list(xs)); ax.set_xticklabels([d.capitalize() for d in dims])
+ax.set_ylim(0, 5.3); ax.set_ylabel("judge score (1-5)")
+ax.legend(frameon=False, loc="upper right")
+ax.set_title("Blind judge: baseline vs style (39 pairs x 2 passes)\nDelta labelled; all four negative")
+fig.tight_layout(); fig.savefig(CHARTS / "v2-judge.png", dpi=150); plt.close(fig)
+
+# ---- v2-cost: metered $/response by model, log scale ----
+cost = []
+for m in V2M:
+    rows = score.load(str(V2 / f"baseline-{m}.jsonl")) + score.load(str(V2 / f"candidate-{m}.jsonl"))
+    cs = [r.get("cost_usd") or 0 for r in rows]
+    cost.append((m, sum(cs) / len(cs) if cs else 0))
+cost.sort(key=lambda x: x[1])
+fig, ax = plt.subplots(figsize=(9, 4.5))
+ys = range(len(cost))
+ax.barh(ys, [c[1] for c in cost], color="#1e5ab8")
+for y, c in zip(ys, cost):
+    ax.text(c[1] * 1.1, y, f"${c[1]:.3f}", va="center", fontsize=9)
+ax.set_yticks(list(ys)); ax.set_yticklabels([V2L[c[0]] for c in cost])
+ax.set_xscale("log")
+ax.set_xlabel("$ per response (log scale)")
+ax.set_title("Metered cost per response (39 fresh cases, default thinking)")
+fig.tight_layout(); fig.savefig(CHARTS / "v2-cost.png", dpi=150); plt.close(fig)
 
 print("charts written:", sorted(p.name for p in CHARTS.iterdir() if p.suffix == ".png"))

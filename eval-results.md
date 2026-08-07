@@ -25,7 +25,7 @@ On 39 fresh cases, styled responses are shorter on every model tested. The table
 | **Opus 5** | **0.68** | 0.51–0.90 | | **Luna** | **0.76** | 0.68–0.85 |
 | **Sol** | **0.80** | 0.70–0.92 | | | | |
 
-![Word ratio by model, 39 fresh cases, 95% CI](charts/v2-breadth.png)
+![Word count: baseline vs style, 39 fresh cases](charts/v2-breadth.png)
 
 Every CI excludes 1.0: the style compresses output on every model tested. The effect is **U-shaped by price tier** — compression is 20–71%, strongest on the mid-tier coding workhorses (Sonnet 0.29, Grok/Gemini/Terra ~0.50) and weakest on the flagships (Opus 0.68, Sol 0.80) and the cheapest tier (Luna 0.76). The v1 headline "word drops 41–67%" was a six-model slice of this wider spread.
 
@@ -42,7 +42,7 @@ The same cases run with explicit `--thinking` levels show no monotone effect, an
 | Grok 4.5 | 0.52 | 0.57 | 0.59 | 0.54 |
 | Gemini 3.1 | 0.50 | 0.44 | — | 0.39 |
 
-![Word ratio by thinking level](charts/v2-axis.png)
+![Thinking level: compression vs each model's default](charts/v2-axis.png)
 
 Word compression does not collapse at high thinking (separate from P4's finding that *billed* thinking tokens compress less — both are true). One caveat: sonnet's no-flag default (0.29) beats all its explicit levels (0.38–0.43) — a distinct default config or batch noise; the axis cells are 1 trial, so this is flagged, not explained.
 
@@ -69,6 +69,8 @@ An independent judge (Sonnet 5, blind to condition, randomized A/B order) scored
 | Actionability | 4.47 | 3.67 | −0.81 |
 | Calibration | 4.26 | 3.96 | −0.29 |
 
+![Blind judge: baseline vs style, 39 pairs x 2 passes](charts/v2-judge.png)
+
 Inter-pass agreement: 76% exact-match, mean |diff| 0.29 (v1: 78% / 0.22). The fresh-set judge sees a quality cost on **all four** dimensions, largest on completeness. v1's dev-set judge found correctness positive (+0.21) — the two are different sets and both are sonnet-judges-sonnet; the fresh set is the better-powered measurement and is harsher.
 
 ## 5. Cost
@@ -76,6 +78,8 @@ Inter-pass agreement: 76% exact-match, mean |diff| 0.29 (v1: 78% / 0.22). The fr
 Real metered $/response (default thinking, cached system prompt): luna $0.013, grok-4.3 $0.035, haiku $0.049, grok-4.5 $0.086, gemini/terra/sonnet ~$0.13, sol $0.35, opus $0.65. The ~7.2K-token cached system prompt dominates cheap-tier cost; output price dominates premium. The v2 campaign spent ~$255 of the $400 doubled budget, with per-phase spend gates fed by the meter.
 
 On the v1 six-model data, net per-response savings (visible prose, cached, researched rates) were positive on every model — smallest on the cheap tiers (GLM $0.00008, Gemini $0.00063), largest on Opus ($0.01522).
+
+![Metered cost per response by model](charts/v2-cost.png)
 
 ## Historical v1 (six models, attention-control.md)
 
