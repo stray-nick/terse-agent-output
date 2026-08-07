@@ -99,11 +99,16 @@ def runner_profile(command: list[str]) -> str | None:
 
 
 def session_dirs_for(command: list[str]) -> list[Path]:
-    """OMP session dirs for the profile pinned in the command; all profiles if unpinned.
+    """Session dirs for the runner binary in the command.
 
-    `omp -p` emits only text, so per-response token usage must be read from the
-    session file the call creates (~/.omp/profiles/<profile>/agent/sessions/...).
+    omp -p writes sessions under ~/.omp/profiles/<profile>/agent/sessions/;
+    pi -p writes under ~/.pi/agent/sessions/. Both are JSONL with assistant
+    usage blocks, read the same way by read_usage_from_session.
     """
+    shim = str(command[1]) if len(command) > 1 else ""
+    if "pi-eval" in shim:
+        sdir = Path.home() / ".pi" / "agent" / "sessions"
+        return [sdir] if sdir.exists() else []
     root = Path.home() / ".omp" / "profiles"
     profile = runner_profile(command)
     if profile:
