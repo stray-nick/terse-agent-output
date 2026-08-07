@@ -1,6 +1,6 @@
 # Reproduce the eval
 
-The eval measures whether the output style changes agent output. It ran 16 case prompts, dev split, 3 trials each, baseline (no style) vs candidate (style injected), across six models. 574 responses total.
+The eval measures whether the output style changes agent output. It ran 16 case prompts, dev split, 3 trials each, baseline (no style) vs candidate (style injected), across six models. 576 responses total (see the P6 note below on the two restored GLM rows).
 
 ## What's here
 
@@ -68,8 +68,8 @@ The GLM run initially skipped 2 of 96 responses (`complex-plan` trial 2, `verbat
 
 ### Cost
 
-Approximate OMP-reported cost for the full eval (all six models, 574 responses): ~$210. Driven mostly by Opus 5 (thinking=high, ~$84) and Gemini-3.1-pro (thinking=high, ~2h17m of compute).
+Approximate OMP-reported cost for the full eval (all six models, 576 responses): ~$210. Driven mostly by Opus 5 (thinking=high, ~$84) and Gemini-3.1-pro (thinking=high, ~2h17m of compute).
 
 ## What this does not prove
 
-This is a self-run, dev-split eval. It measures style compliance on 16 hand-written prompts. It does not measure independent task quality, user satisfaction, or performance on a held-out task-success benchmark. The accuracy check is a small preliminary spot check (4 task-runs, n=1 per cell, 2 models). Treat the results as evidence that the style is applied and shapes output, not as a rigorous benchmark.
+This is a self-run, dev-split eval. It measures style compliance on 16 hand-written prompts. It does not measure independent task quality, user satisfaction, or performance on a held-out task-success benchmark. The prose eval was supplemented by a task-success eval (P0: 120 tool-using task-runs across 10 task types on 2 models) and a held-out set (P2); see `eval-results.md`. Treat the results as evidence that the style is applied and shapes output, not as a rigorous benchmark.

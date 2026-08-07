@@ -23,7 +23,7 @@ from pathlib import Path
 from typing import Any
 
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]  # repo root (run_evals.py lives at <repo>/evals/harness/)
 DEFAULT_CASES = ROOT / "evals" / "cases.jsonl"
 WEIGHTS = {
     "correctness": 0.30,
@@ -38,6 +38,26 @@ CONDITIONS = {"baseline", "candidate", "comparator"}
 # you believe you are done. Tuning a style against a fixed case set until the
 # gate passes measures memorization; the holdout is what catches that.
 SPLITS = {"dev", "holdout"}
+
+# Billed token rates ($/1M), researched 2026-08-06 from provider pricing pages.
+# Keyed by the --model string the runner command pins. cacheWrite is the
+# provider's listed 5-minute cache-write rate; where unlisted it is 1.25x input
+# (the OpenAI-style write surcharge Anthropic and Fireworks also use).
+PRICING_USD_PER_MTON = {
+    "claude-sonnet-5":        {"input": 2.00, "output": 10.00, "cache_read": 0.20, "cache_write": 2.50},
+    "claude-opus-5":          {"input": 5.00, "output": 25.00, "cache_read": 0.50, "cache_write": 6.25},
+    "claude-haiku-4-5":       {"input": 1.00, "output": 5.00, "cache_read": 0.10, "cache_write": 1.25},
+    "gpt-5.6-sol":            {"input": 5.00, "output": 30.00, "cache_read": 0.50, "cache_write": 6.25},
+    "gpt-5.6-terra":          {"input": 2.00, "output": 12.00, "cache_read": 0.20, "cache_write": 2.50},
+    "gpt-5.6-luna":           {"input": 0.20, "output": 1.20, "cache_read": 0.02, "cache_write": 0.25},
+    "gemini-3.1-pro-preview": {"input": 2.00, "output": 12.00, "cache_read": 0.20, "cache_write": 2.50},
+    "grok-4.5":               {"input": 2.00, "output": 6.00,  "cache_read": 0.30, "cache_write": 2.50},
+    "grok-4.3":               {"input": 1.25, "output": 2.50,  "cache_read": 0.20, "cache_write": 1.56},
+    "glm-5.2":                {"input": 1.40, "output": 4.40,  "cache_read": 0.14, "cache_write": 1.75},
+    "kimi-k3":                {"input": 3.00, "output": 15.00, "cache_read": 0.30, "cache_write": 3.75},
+    "deepseek-v4-flash-0731": {"input": 0.14, "output": 0.28,  "cache_read": 0.028, "cache_write": 0.18},
+}
+
 # The fields that must hold constant across every row of one results file.
 # A run that resumes after an edit to the cases, the style, or the runner
 # command produces rows that no longer answer the same question.
@@ -66,6 +86,82 @@ def runner_model(command: list[str]) -> str | None:
         if token.startswith("--model="):
             return token.split("=", 1)[1]
     return None
+
+
+def runner_profile(command: list[str]) -> str | None:
+    """Read the pinned OMP profile out of the runner command, mirroring runner_model."""
+    for index, token in enumerate(command):
+        if token == "--profile" and index + 1 < len(command):
+            return command[index + 1]
+        if token.startswith("--profile="):
+            return token.split("=", 1)[1]
+    return None
+
+
+def session_dirs_for(command: list[str]) -> list[Path]:
+    """OMP session dirs for the profile pinned in the command; all profiles if unpinned.
+
+    `omp -p` emits only text, so per-response token usage must be read from the
+    session file the call creates (~/.omp/profiles/<profile>/agent/sessions/...).
+    """
+    root = Path.home() / ".omp" / "profiles"
+    profile = runner_profile(command)
+    if profile:
+        return [root / profile / "agent" / "sessions"]
+    return sorted(root.glob("*/agent/sessions"))
+
+
+def session_files(dirs: list[Path]) -> list[Path]:
+    files: list[Path] = []
+    for directory in dirs:
+        if directory.exists():
+            files.extend(directory.glob("*/*.jsonl"))
+    return files
+
+
+def newest_session_mtime(dirs: list[Path]) -> float:
+    return max((f.stat().st_mtime for f in session_files(dirs)), default=0.0)
+
+
+def read_usage_from_session(dirs: list[Path], threshold_mtime: float) -> dict[str, Any] | None:
+    """Find a session file written after threshold and return its last assistant usage."""
+    candidates = sorted(session_files(dirs), key=lambda f: f.stat().st_mtime, reverse=True)
+    for f in candidates:
+        if f.stat().st_mtime <= threshold_mtime - 0.5:
+            continue
+        try:
+            lines = f.read_text(errors="ignore").splitlines()
+        except OSError:
+            continue
+        for line in reversed(lines):
+            try:
+                d = json.loads(line)
+            except ValueError:
+                continue
+            msg = d.get("message", d)
+            if isinstance(msg, dict) and msg.get("role") == "assistant":
+                u = msg.get("usage")
+                if isinstance(u, dict) and u:
+                    return u
+    return None
+
+
+def cost_from_usage(usage: dict[str, Any], model: str) -> float | None:
+    """Bill a usage record against the researched rate card; None when unmetered."""
+    rate = PRICING_USD_PER_MTON.get(model)
+    if rate is None:
+        return None
+
+    def tok(key: str) -> float:
+        value = usage.get(key)
+        return float(value) if isinstance(value, (int, float)) else 0.0
+
+    return (
+        tok("input") * rate["input"]
+        + tok("cacheRead") * rate["cache_read"]
+        + tok("cacheWrite") * rate["cache_write"]
+        + tok("output") * rate["output"]
+    ) / 1e6
 
 
 def provenance(command: list[str], cases_path: Path, style_path: Path | None) -> dict[str, Any]:
@@ -432,8 +528,21 @@ def run_evaluations(args: argparse.Namespace) -> int:
     config = json.loads(args.runner_config.read_text(encoding="utf-8"))
     runner = config[args.runner]
     command = list(runner["command"])
+    # Runner commands may reference repo files (the omp-eval.sh watchdog) by
+    # repo-relative path so the committed config is portable and leaks no home
+    # directory. subprocess runs with cwd=workdir (a temp dir), so absolutize
+    # repo-relative entries against this file's repo root before invoking.
+    command = [
+        str((ROOT / token).resolve()) if token.startswith("evals/") else token
+        for token in command
+    ]
     response_format = runner.get("response_format", "text")
-    if response_format != "claude-json" and not args.allow_unmetered:
+    # The text format reports no usage in-band, but the session-file meter below
+    # (read_usage_from_session + cost_from_usage) recovers it for omp runs, so it
+    # is no longer unconditionally unmetered. A run that still gets no usage at
+    # the per-response guard stops rather than silently running unmetered.
+    session_dirs = session_dirs_for(command) if response_format == "text" else []
+    if response_format not in ("claude-json", "text") and not args.allow_unmetered:
         raise RuntimeError(
             f"The {response_format!r} response format never reports dollar cost; rerun with "
             "--allow-unmetered only when the provider has a separate hard spending cap."
@@ -491,6 +600,7 @@ def run_evaluations(args: argparse.Namespace) -> int:
                 if runner.get("budget_flag"):
                     invocation.extend([runner["budget_flag"], f"{remaining:.4f}"])
                 invocation.append(prompt)
+                threshold = newest_session_mtime(session_dirs) if session_dirs else 0.0
                 completed = None
                 for attempt in range(args.retries + 1):
                     completed = subprocess.run(
@@ -523,6 +633,13 @@ def run_evaluations(args: argparse.Namespace) -> int:
                     )
                     continue
                 text, usage, cost = _parse_response(completed.stdout, response_format)
+                if not usage and session_dirs:
+                    # omp -p emits no usage in-band; read it from the session file
+                    # the call created (same approach as p4_capture.py), then bill
+                    # the researched rate card so spend gates have real numbers.
+                    time.sleep(0.5)
+                    usage = read_usage_from_session(session_dirs, threshold) or {}
+                    cost = cost_from_usage(usage, stamp["model"]) if usage else None
                 if cost is None and not args.allow_unmetered:
                     raise RuntimeError(
                         "Runner did not report dollar cost; rerun with --allow-unmetered only when "

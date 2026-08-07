@@ -1,6 +1,6 @@
 # Eval results: the terse output style, six models
 
-An output style is a rule file that reshapes how an agent writes. We ran one across six models, 574 responses, and measured it. It works on every model. It doesn't hurt the work. It saves money.
+An output style is a rule file that reshapes how an agent writes. We ran one across six models, 576 responses, and measured it. It works on every model. It doesn't hurt the work. It saves money.
 
 The style is a fork of [attention-control](https://github.com/aaddrick/attention-control) with three evidence-driven fixes. This document is the full evaluation. The rule itself is [`omp/terse.md`](omp/terse.md) (OMP/Pi) or [`claude/terse.md`](claude/terse.md) (Claude Code).
 
@@ -29,10 +29,10 @@ The style is a fork of [attention-control](https://github.com/aaddrick/attention
 | GPT-5.6-terra | 451 | 225 | −50% | 2.3 | 0.1 | 16% | 1% | 0% | 0% |
 | Claude (direct) | 389 | 158 | −59% | 2.0 | 0.1 | 29% | 4% | 10% | 0% |
 | Sonnet 5 | 342 | 149 | −56% | 1.3 | 0.1 | 25% | 3% | 2% | 0% |
-| GLM 5.2 Fast | 410 | 253 | −38% | 1.7 | 0.4 | 15% | 4% | 0% | 0% |
+| GLM 5.2 Fast | 427 | 253 | −41% | 1.7 | 0.4 | 15% | 4% | 0% | 0% |
 | Gemini-3.1-pro | 206 | 68 | −67% | 1.2 | 0.0 | 16% | 0% | 0% | 0% |
 
-574 responses. Word count drops 38–67%. Passive voice collapses 76–95%. Long sentences fall to 0–4%. Forbidden closers eliminated wherever they existed. Perfect tense eliminated on all six.
+576 responses. Word count drops 41–67%. Passive voice collapses 76–95%. Long sentences fall to 0–4%. Forbidden closers eliminated wherever they existed. Perfect tense eliminated on all six.
 
 ![Word count reduction](charts/02-word-count.png)
 
@@ -50,20 +50,20 @@ Gemini-3.1-pro had the tersest baseline (206 words) but the biggest relative com
 
 ## Token economics: the style pays for itself
 
-The rule injects ~3,900 cached-input tokens per turn. It saves ~252 output tokens per turn. Output is 15–50× more expensive than cache-read. The savings below assume the system prompt is cached (steady-state for a fixed prompt, ~10% of input price). On the first turn, or on a cache miss, the 3,900 tokens bill at full input price — on cheap models that flips the net to a small cost. Pricing is approximate published rates as of 2026-08; provider rates and cache behavior change.
+The rule injects ~3,900 cached-input tokens per turn. It saves ~255 output tokens per turn. Output is 15–50× more expensive than cache-read. The savings below assume the system prompt is cached (steady-state for a fixed prompt, ~10% of input price). On the first turn, or on a cache miss, the 3,900 tokens bill at full input price — on cheap models that flips the net to a small cost. Pricing is approximate published rates as of 2026-08; provider rates and cache behavior change.
 
 | Model | Output saved (tok) | Cache cost added | Output cost saved | Net per response |
 |---|---|---|---|---|
-| Opus 5 | 281 | $0.00585 | $0.02110 | **saves $0.01525** |
+| Opus 5 | 281 | $0.00585 | $0.02107 | **saves $0.01522** |
 | GPT-5.6-terra | 294 | $0.00390 | $0.00882 | **saves $0.00492** |
 | Claude (direct) | 300 | $0.00117 | $0.00450 | **saves $0.00333** |
-| Sonnet 5 | 250 | $0.00117 | $0.00376 | **saves $0.00259** |
+| Sonnet 5 | 250 | $0.00117 | $0.00375 | **saves $0.00258** |
 | Gemini-3.1-pro | 180 | $0.00117 | $0.00180 | **saves $0.00063** |
-| GLM 5.2 Fast | 204 | $0.00006 | $0.00012 | **saves $0.00006** |
+| GLM 5.2 Fast | 226 | $0.00006 | $0.00014 | **saves $0.00008** |
 
-At 1,000 responses/day on Opus 5: ~$13/day saved (visible-prose basis). The rule occupies 0.4–2% of the context window. It doesn't compound — same system prompt every turn.
+At 1,000 responses/day on Opus 5: ~$15/day saved (visible-prose basis). The rule occupies 0.4–2% of the context window. It doesn't compound — same system prompt every turn.
 
-**Caveat — thinking tokens (P4).** The table above counts *visible prose* only. On thinking=high models, reasoning tokens are billed at output price and the style compresses them less than visible prose. A capture on Sonnet 5 (thinking=high, 1 trial) found thinking is ~55–64% of total billed output, and total-output compression (−14%) is smaller than visible-prose compression (−19%). So the real per-response savings on thinking=high models are lower than the visible-prose table implies; the $13/day figure is an upper bound for thinking=high models, not a measured total. The **cache assumption is validated**: cacheRead ≈ 100–120K tokens vs input = 2, so the system prompt is fully cached and the warm-cache basis is sound. See the P4 capture in `evals/`.
+**Caveat — thinking tokens (P4).** The table above counts *visible prose* only. On thinking=high models, reasoning tokens are billed at output price and the style compresses them less than visible prose. A capture on Sonnet 5 (thinking=high, 1 trial) found thinking is ~55–64% of total billed output, and total-output compression (−14%) is smaller than visible-prose compression (−19%). So the real per-response savings on thinking=high models are lower than the visible-prose table implies; the $15/day figure is an upper bound for thinking=high models, not a measured total. The **cache assumption is validated**: cacheRead ≈ 100–120K tokens vs input = 2, so the system prompt is fully cached and the warm-cache basis is sound. See the P4 capture in `evals/`.
 
 ![Token economics](charts/07-token-economics.png)
 
@@ -106,7 +106,7 @@ Two findings:
 
 **The shipped style is close to, but not identical to, the published numbers.** `terse.md` lands at 159 words vs attention-control's 149, with slightly more passives (0.5 vs 0.1) and long sentences (8% vs 3%). It still crushes baseline (342 → 159). The headline "Proven across six models" holds in direction and magnitude for the shipped file, but the *exact* published numbers came from `attention-control.md`, not `terse.md`.
 
-**The Enforcement paragraph does nothing as pure prompt text.** `claude/terse.md` (without it) is slightly *more* compressed than `omp/terse.md` (with it) — 140 vs 159 words, identical passives and long-sentence rates. The paragraph is not a useful placebo: when no TTSR is running, it adds ~19 tokens of dead weight and no compliance benefit. **Pi users currently get a worse file than Claude Code users**, because `pi/terse.md` is byte-identical to `omp/terse.md` and carries a false statement ("a companion rule is watching your stream") that does nothing on Pi. The TTSR contribution on top of the text (the OMP condition) is not measured here — see Limitations.
+**The Enforcement paragraph shows no benefit as pure prompt text — and may hurt.** `claude/terse.md` (without it) is more compressed than `omp/terse.md` (with it) — 140 vs 159 words, a 12% gap that points *against* the paragraph, not toward no effect. This is one model (Sonnet 5), 48 responses per condition, with no confidence interval; the gap is suggestive, not definitive. When no TTSR is running, the paragraph adds ~19 tokens with no demonstrated compliance benefit. **Pi users may get a worse file than Claude Code users**: `pi/terse.md` is byte-identical to `omp/terse.md` and carries a false statement ("a companion rule is watching your stream") that does nothing on Pi. The TTSR contribution on top of the text (the OMP condition) is not measured here — see Limitations.
 
 ## Held-out generalization: does the effect overfit the dev split?
 
@@ -125,7 +125,7 @@ The dev split is hand-written. To test whether the effect overfits it, we wrote 
 
 ## Blind judge: does compression cost quality?
 
-The mechanical metrics measure style compliance, not quality. A blind LLM judge (Sonnet 5) scored baseline vs styled responses on four *independent* dimensions — correctness, completeness, actionability, calibration — without seeing any style file, any condition label, or any hint that terseness is good. A/B order was randomized per pair and recorded. 91 judgments on the Sonnet dev split (16 cases × 3 trials, two passes). The judge prompt, raw judgments, and agreement are published in `evals/`.
+The mechanical metrics measure style compliance, not quality. A blind LLM judge (Sonnet 5) scored baseline vs styled responses on four *independent* dimensions — correctness, completeness, actionability, calibration — without seeing any style file, any condition label, or any hint that terseness is good. A/B order was randomized per pair and recorded. 91 judgments on the Sonnet dev split (16 cases × 3 trials × 2 passes = 96 designed; 5 missing — `verbatim-error` produced only 1 of 6 judgments, trials 2–3 across both passes, reason unknown). The judge prompt, raw judgments, and agreement are published in `evals/`.
 
 | Dimension | Baseline | Styled | Δ |
 |---|---|---|---|
@@ -162,15 +162,36 @@ The prose metrics used `--no-tools` text-only responses. The P0 task-success eva
 | Model | Text-only Δ words | Tool-session Δ words |
 |---|---|---|
 | Sonnet 5 | −56% | −55% |
-| GLM 5.2 Fast | −38% | −56% |
+| GLM 5.2 Fast | −41% | −56% |
 
-The compression rate holds in tool sessions — the style compresses prose just as much when the agent is using tools as when it is text-only. The scope gap (text-only vs tools) is closed. Absolute word counts are lower in tool sessions (the tasks are shorter), but the *ratio* of compression is preserved. This is a free result: computed from the P0 task-run responses, no additional spend.
+Compression persists in tool sessions, but this is not a clean contrast. The text-only and tool-session values come from different prompt sets — 16 case prompts versus 10 task types — reusing P0 responses rather than running the same prompts both ways. Sonnet holds steady (−56% → −55%), but GLM moves −41% → −56%, a 15-point jump in the *opposite* direction from the predicted attenuation (tool overhead was expected to narrow the gap, not widen it). The GLM anomaly is unexplained. Absolute word counts are lower in tool sessions (the tasks are shorter), but the *ratio* of compression is preserved or amplified. This is a free result: computed from the P0 task-run responses, no additional spend.
 
 ## Methodology and limitations
 
-**Reproducibility.** The raw responses, the case prompts, the task harness, and the scoring script are in `evals/`. Run `python3 evals/score.py` to reproduce every table above from the raw data — including the P0 task-success table (`evals/results/p0-task-success.jsonl`) and the P1 harness-variant table (`p1-cond2-ompterse-son.jsonl`, `p1-cond3-claudeterse-son.jsonl`). The end-to-end prose harness is `run_evals.py` from [attention-control](https://github.com/aaddrick/attention-control); see `evals/REPRODUCE.md`.
+**Reproducibility.** The raw responses, the case prompts, the task harness, and the scoring script are in `evals/`. Run `python3 evals/score.py` to reproduce every table above from the raw data — including the P0 task-success table (`evals/results/p0-task-success.jsonl`), the P1 harness-variant table (`p1-cond2-ompterse-son.jsonl`, `p1-cond3-claudeterse-son.jsonl`), the multi-model economics table, and the trim comparison. The end-to-end prose harness is `run_evals.py` from [attention-control](https://github.com/aaddrick/attention-control); see `evals/REPRODUCE.md`.
 
 **Which style the numbers describe.** The six-model table measured `attention-control.md`, not the shipped `terse.md`. The shipped file's numbers (harness-variant section) are close but not identical: 159 vs 149 words on Sonnet 5. Read the six-model table as "the style approach works across models," and the harness-variant table as "the shipped file specifically."
 
 **Metric circularity, reduced.** The prose metrics measure compliance with the style's own constraints, not quality. The blind judge (P3) is the counterweight: it scores on independent dimensions (correctness, completeness, actionability, calibration) with no style file or condition label. It found the styled responses slightly more correct and better calibrated, but measurably less complete (−0.93). Circular compliance metrics cannot see that completeness cost; only the blind judge did. The circularity is reduced, not eliminated — the judge is still an LLM, not a human, and a single model.
 
+**Closed by P0–P6.** Four limitations from the original document are retired by evidence: (1) *Self-run, dev-split risk* — P2's held-out set reproduced the effect within 3–4 points on three models; the overfitting concern is closed. (2) *Partial LLM judging* — P3 published a full blind judge with inter-pass agreement, replacing the original's partial, unpublished coverage. (3) *Accuracy spot check (4 runs, n=1)* — P0 replaced it with 120 task-runs across 10 task types and 2 models. (4) *Response count (GLM 94)* — P6 restored the 2 skipped GLM responses; all six models now have 96 responses each (576 total).
+
+**Text-only vs tools (updated).** The prose metrics used `--no-tools` text-only responses. P5 tested tool-session compression by reusing P0 responses, but the comparison crosses different prompt sets (16 case prompts vs 10 task types). Compression persists, but the scope gap is not cleanly closed — GLM's tool-session compression (−56%) exceeds its text-only rate (−41%), opposite to the predicted attenuation. A clean contrast would run the same prompts with and without tools.
+
+**Thinking tokens (updated).** P4 captured thinking-token economics on Sonnet 5 (1 trial, 1 model). Thinking is ~55–64% of total billed output, and total-output compression (−14%) is smaller than visible-prose compression (−19%). The visible-prose economics table overstates savings on thinking=high models. This rests on a single trial on a single model; the structure (thinking share, total < visible, cache validation) is robust, but the absolute numbers are noisy.
+
+**Known style behaviors.** The style over-defers on knowledge questions occasionally — suppressing general knowledge that isn't fabrication. The fork's deference calibration (fix 3) reduces this but does not eliminate it. TTSR hangs in `-p` (print) mode; it works in interactive sessions. Remove `no-forbidden-openers.md` if you rely on scripted `-p` runs.
+
+**TTSR contribution unmeasured.** The harness-variant comparison (P1) tested prompt text only, with TTSR disabled in all conditions. The contrast between `omp/terse.md` with TTSR active and without it has never been run. What OMP users get on top of the prompt text — the enforcement layer — is genuinely unknown.
+
+**Held-out set spent.** The 16 held-out prompts (P2) have been run and published. They are no longer held out. A future iteration needs a fresh held-out set to test generalization again.
+
+**P4 economics: single trial, single model.** The thinking-token capture is 1 trial on Sonnet 5. The multi-model economics table estimates token savings from word deltas (×1.3 tok/word), not from actual token counts. Only Sonnet 5 has a real token-capture validation.
+
+**P1 harness-variant: single model.** The harness-variant comparison (shipped `terse.md` vs `attention-control.md` vs `claude/terse.md`) ran on Sonnet 5 only. The direction and magnitude may differ on other models.
+
+**Blind judge self-preference.** The blind judge is Sonnet 5 scoring, among others, Sonnet 5's own output. Self-preference is a live risk and is not controlled for. A judge model that did not also produce scored responses would be cleaner.
+
+---
+
+*Data: 576 responses (Opus 5 / GPT-5.6-terra / Gemini-3.1-pro / Sonnet 5 / GLM 5.2 Fast / Claude: 96 each). The two GLM responses skipped in the original run were filled by a later runner config — see commit 3bea96c. Charts generated with matplotlib from the verified metrics. Raw responses, prompts, and scoring script in `evals/`. Adapted from [attention-control](https://github.com/aaddrick/attention-control).*

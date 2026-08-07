@@ -11,6 +11,7 @@ Usage: python3 evals/p3_judge.py --pairs <baseline.jsonl> <candidate.jsonl> --ou
 """
 import argparse
 import json
+import os
 import random
 import re
 import subprocess
@@ -36,10 +37,12 @@ Reply with ONLY a JSON object, no other text:
 {{"A": {{"correctness": 1-5, "completeness": 1-5, "actionability": 1-5, "calibration": 1-5}}, "B": {{"correctness": 1-5, "completeness": 1-5, "actionability": 1-5, "calibration": 1-5}}}}"""
 
 
-def judge(model, prompt, ra, rb):
+def judge(model, prompt, ra, rb, profile=""):
     full = JUDGE_PROMPT.format(prompt=prompt, resp_a=ra, resp_b=rb)
-    cmd = ["omp", "--profile", "<profile>", "-p", "--no-tools", "--model", model,
-           "--thinking", "high", full]
+    cmd = ["omp"]
+    if profile:
+        cmd += ["--profile", profile]
+    cmd += ["-p", "--no-tools", "--model", model, "--thinking", "high", full]
     try:
         p = subprocess.run(cmd, capture_output=True, text=True, timeout=300, stdin=subprocess.DEVNULL)
         out = p.stdout.strip()
@@ -59,7 +62,9 @@ def main():
     ap.add_argument("--out", required=True)
     ap.add_argument("--passes", type=int, default=1)
     ap.add_argument("--judge-model", default="claude-sonnet-5")
-    ap.add_argument("--cases", nargs="+", default=["/tmp/tao/evals/cases.jsonl"])
+    ap.add_argument("--profile", default=os.environ.get("OMP_PROFILE", ""),
+                    help="omp profile (omit for install default)")
+    ap.add_argument("--cases", nargs="+", default=["evals/cases-v2.jsonl"])
     ap.add_argument("--seed", type=int, default=0)
     args = ap.parse_args()
 
@@ -91,7 +96,7 @@ def main():
         for p in range(1, args.passes + 1):
             if (cid, trial, p) in done:
                 continue
-            scores, err = judge(args.judge_model, prompts[cid], ra, rb)
+            scores, err = judge(args.judge_model, prompts[cid], ra, rb, args.profile)
             rec = {"case_id": cid, "trial": trial, "pass": p, "order": order,
                    "judge_model": args.judge_model, "scores": scores, "error": err}
             with open(args.out, "a") as f:

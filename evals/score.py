@@ -217,7 +217,12 @@ def p5_table():
     for r in rows:
         m = "sonnet" if "sonnet" in r["model"] else "glm"
         agg[(m, r["condition"])]["w"].append(len(r["response"].split()))
-    text = {"sonnet": (342, 149), "glm": (410, 253)}
+    text = {}
+    for m, (bf, cf) in [("sonnet", ("omp-dev-baseline-son.jsonl", "omp-dev-candidate-son.jsonl")),
+                         ("glm", ("omp-dev-baseline-glm300k.jsonl", "omp-dev-candidate-glm300k.jsonl"))]:
+        b, _ = mean_stats(load(bf))
+        c, _ = mean_stats(load(cf))
+        text[m] = (round(b["w"]), round(c["w"]))
     print("\n=== P5 tool-session prose compression (from P0 data, tools on) ===")
     print(f"{'model':<10} {'text-only base':>14} {'text-only style':>16} {'tool base':>10} {'tool style':>11} {'tool d%':>9}")
     for m in ["sonnet", "glm"]:
@@ -225,7 +230,65 @@ def p5_table():
         ob = statistics.mean(agg[(m, "baseline")]["w"])
         os_ = statistics.mean(agg[(m, "style")]["w"])
         print(f"{m:<10} {tb:>14} {ts:>16} {ob:>10.0f} {os_:>11.0f} {(os_/ob-1)*100:>+8.0f}%")
-    print("Compression rate holds in tool sessions, matching text-only. Scope gap closed.")
+    print("Compression persists in tool sessions. Note: text-only and tool-session values are from different prompt sets (16 case prompts vs 10 task types); not a clean contrast.")
+
+def p4_multi_table():
+    """P4 multi-model economics: visible-prose token savings per model (estimated from word deltas)."""
+    TOK_PER_WORD = 1.3
+    SYSTEM_PROMPT_TOK = 3900
+    PRICING = {  # (output_per_Mtok, cache_read_per_Mtok)
+        "Opus 5": (75, 1.50),
+        "GPT-5.6-terra": (30, 1.00),
+        "Claude (direct)": (15, 0.30),
+        "Sonnet 5": (15, 0.30),
+        "Gemini-3.1-pro": (10, 0.30),
+        "GLM 5.2 Fast": (0.60, 0.015),
+    }
+    order = ["Opus 5", "GPT-5.6-terra", "Claude (direct)", "Sonnet 5", "Gemini-3.1-pro", "GLM 5.2 Fast"]
+    print("\n=== P4 multi-model economics (visible-prose basis, estimated) ===")
+    print(f"{'Model':<18} {'out_saved':>10} {'cache_cost':>12} {'out_cost_svd':>14} {'net':>14}")
+    total_saved = 0
+    for label in order:
+        bfile, cfile = MODELS[label]
+        brows = load(bfile)
+        if cfile is None:
+            crows = [r for r in brows if r.get("condition") == "candidate"]
+            brows = [r for r in brows if r.get("condition") == "baseline"]
+        else:
+            crows = load(cfile)
+        b, _ = mean_stats(brows)
+        c, _ = mean_stats(crows)
+        delta_w = b["w"] - c["w"]
+        out_saved = round(delta_w * TOK_PER_WORD)
+        total_saved += out_saved
+        out_price, cache_price = PRICING[label]
+        cache_cost = SYSTEM_PROMPT_TOK * cache_price / 1e6
+        out_cost_saved = out_saved * out_price / 1e6
+        net = out_cost_saved - cache_cost
+        print(f"{label:<18} {out_saved:>10} {cache_cost:>12.5f} {out_cost_saved:>14.5f} saves {net:>10.5f}")
+    avg_saved = total_saved / len(order)
+    b, _ = mean_stats(load("omp-dev-baseline-opus.jsonl"))
+    c, _ = mean_stats(load("omp-dev-candidate-opus.jsonl"))
+    opus_delta = round((b["w"] - c["w"]) * TOK_PER_WORD)
+    opus_out_price, opus_cache_price = PRICING["Opus 5"]
+    opus_cache = SYSTEM_PROMPT_TOK * opus_cache_price / 1e6
+    opus_net_per = opus_delta * opus_out_price / 1e6 - opus_cache
+    print(f"\nAvg output saved: {avg_saved:.0f} tok. Opus 5 at 1k/day: ${opus_net_per*1000:.0f}/day (visible-prose basis).")
+    print("Note: token estimates from word delta x 1.3 tok/word. Pricing is approximate published rates as of 2026-08.")
+
+
+def trim_table():
+    """Trim comparison: full style vs trimmed style on Sonnet 5."""
+    full = load("omp-dev-candidate-son.jsonl")
+    trim = load("omp-dev-candidate-son-trim.jsonl")
+    f, _ = mean_stats(full)
+    t, _ = mean_stats(trim)
+    print("\n=== Trim comparison (Sonnet 5, dev split) ===")
+    print(f"{'metric':<16} {'full':>8} {'trim':>8} {'delta':>8}")
+    print(f"{'words':<16} {f['w']:>8.0f} {t['w']:>8.0f} {t['w']-f['w']:>+8.0f}")
+    print(f"{'passive':<16} {f['pv']:>8.1f} {t['pv']:>8.1f}")
+    print(f"{'long-sent':<16} {f['lp']*100:>7.0f}% {t['lp']*100:>7.0f}% {(t['lp']-f['lp'])*100:>+7.0f}pp")
+    print(f"{'closers':<16} {f['cl']*100:>7.0f}% {t['cl']*100:>7.0f}%")
 
 if __name__ == "__main__":
     main()
@@ -234,4 +297,6 @@ if __name__ == "__main__":
     p2_table()
     p3_table()
     p4_table()
+    p4_multi_table()
     p5_table()
+    trim_table()

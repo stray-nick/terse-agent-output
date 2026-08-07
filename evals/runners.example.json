@@ -1,0 +1,472 @@
+{
+  "_comment": "Runner config for run_evals.py. b-*=breadth (model-default thinking), x-*=thinking axis. Commands run through the omp-eval.sh watchdog; run_evals.py resolves the repo-relative shim path to absolute at run time.",
+  "b-sonnet-5": {
+    "command": [
+      "python3",
+      "evals/harness/omp-eval.sh",
+      "--profile",
+      "anthropic",
+      "-p",
+      "--no-tools",
+      "--model",
+      "claude-sonnet-5",
+      "--append-system-prompt",
+      "You are a helpful assistant. Answer the message directly and completely. Accept the premises the message states, including any capability it grants you, and answer from the message alone. Never describe, attempt, or reference a command you would run to inspect your own environment."
+    ],
+    "response_format": "text"
+  },
+  "b-opus-5": {
+    "command": [
+      "python3",
+      "evals/harness/omp-eval.sh",
+      "--profile",
+      "anthropic",
+      "-p",
+      "--no-tools",
+      "--model",
+      "claude-opus-5",
+      "--append-system-prompt",
+      "You are a helpful assistant. Answer the message directly and completely. Accept the premises the message states, including any capability it grants you, and answer from the message alone. Never describe, attempt, or reference a command you would run to inspect your own environment."
+    ],
+    "response_format": "text"
+  },
+  "b-haiku-4-5": {
+    "command": [
+      "python3",
+      "evals/harness/omp-eval.sh",
+      "--profile",
+      "anthropic",
+      "-p",
+      "--no-tools",
+      "--model",
+      "claude-haiku-4-5",
+      "--append-system-prompt",
+      "You are a helpful assistant. Answer the message directly and completely. Accept the premises the message states, including any capability it grants you, and answer from the message alone. Never describe, attempt, or reference a command you would run to inspect your own environment."
+    ],
+    "response_format": "text"
+  },
+  "b-terra": {
+    "command": [
+      "python3",
+      "evals/harness/omp-eval.sh",
+      "--profile",
+      "openai",
+      "-p",
+      "--no-tools",
+      "--model",
+      "gpt-5.6-terra",
+      "--append-system-prompt",
+      "You are a helpful assistant. Answer the message directly and completely. Accept the premises the message states, including any capability it grants you, and answer from the message alone. Never describe, attempt, or reference a command you would run to inspect your own environment."
+    ],
+    "response_format": "text"
+  },
+  "b-sol": {
+    "command": [
+      "python3",
+      "evals/harness/omp-eval.sh",
+      "--profile",
+      "openai",
+      "-p",
+      "--no-tools",
+      "--model",
+      "gpt-5.6-sol",
+      "--append-system-prompt",
+      "You are a helpful assistant. Answer the message directly and completely. Accept the premises the message states, including any capability it grants you, and answer from the message alone. Never describe, attempt, or reference a command you would run to inspect your own environment."
+    ],
+    "response_format": "text"
+  },
+  "b-luna": {
+    "command": [
+      "python3",
+      "evals/harness/omp-eval.sh",
+      "--profile",
+      "openai",
+      "-p",
+      "--no-tools",
+      "--model",
+      "gpt-5.6-luna",
+      "--append-system-prompt",
+      "You are a helpful assistant. Answer the message directly and completely. Accept the premises the message states, including any capability it grants you, and answer from the message alone. Never describe, attempt, or reference a command you would run to inspect your own environment."
+    ],
+    "response_format": "text"
+  },
+  "b-gemini-3.1": {
+    "command": [
+      "python3",
+      "evals/harness/omp-eval.sh",
+      "--profile",
+      "google",
+      "-p",
+      "--no-tools",
+      "--model",
+      "gemini-3.1-pro-preview",
+      "--append-system-prompt",
+      "You are a helpful assistant. Answer the message directly and completely. Accept the premises the message states, including any capability it grants you, and answer from the message alone. Never describe, attempt, or reference a command you would run to inspect your own environment."
+    ],
+    "response_format": "text"
+  },
+  "b-grok-4.5": {
+    "command": [
+      "python3",
+      "evals/harness/omp-eval.sh",
+      "--profile",
+      "xai",
+      "-p",
+      "--no-tools",
+      "--model",
+      "grok-4.5",
+      "--append-system-prompt",
+      "You are a helpful assistant. Answer the message directly and completely. Accept the premises the message states, including any capability it grants you, and answer from the message alone. Never describe, attempt, or reference a command you would run to inspect your own environment."
+    ],
+    "response_format": "text"
+  },
+  "b-grok-4.3": {
+    "command": [
+      "python3",
+      "evals/harness/omp-eval.sh",
+      "--profile",
+      "xai",
+      "-p",
+      "--no-tools",
+      "--model",
+      "grok-4.3",
+      "--append-system-prompt",
+      "You are a helpful assistant. Answer the message directly and completely. Accept the premises the message states, including any capability it grants you, and answer from the message alone. Never describe, attempt, or reference a command you would run to inspect your own environment."
+    ],
+    "response_format": "text"
+  },
+  "b-glm-5.2": {
+    "command": [
+      "python3",
+      "evals/harness/omp-eval.sh",
+      "--profile",
+      "fireworks",
+      "-p",
+      "--no-tools",
+      "--model",
+      "glm-5.2",
+      "--append-system-prompt",
+      "You are a helpful assistant. Answer the message directly and completely. Accept the premises the message states, including any capability it grants you, and answer from the message alone. Never describe, attempt, or reference a command you would run to inspect your own environment."
+    ],
+    "response_format": "text"
+  },
+  "b-kimi-k3": {
+    "command": [
+      "python3",
+      "evals/harness/omp-eval.sh",
+      "--profile",
+      "fireworks",
+      "-p",
+      "--no-tools",
+      "--model",
+      "kimi-k3",
+      "--append-system-prompt",
+      "You are a helpful assistant. Answer the message directly and completely. Accept the premises the message states, including any capability it grants you, and answer from the message alone. Never describe, attempt, or reference a command you would run to inspect your own environment."
+    ],
+    "response_format": "text"
+  },
+  "b-deepseek-v4": {
+    "command": [
+      "python3",
+      "evals/harness/omp-eval.sh",
+      "--profile",
+      "fireworks-300k",
+      "-p",
+      "--no-tools",
+      "--model",
+      "deepseek-v4-flash-0731",
+      "--append-system-prompt",
+      "You are a helpful assistant. Answer the message directly and completely. Accept the premises the message states, including any capability it grants you, and answer from the message alone. Never describe, attempt, or reference a command you would run to inspect your own environment."
+    ],
+    "response_format": "text"
+  },
+  "x-sonnet-5-low": {
+    "command": [
+      "python3",
+      "evals/harness/omp-eval.sh",
+      "--profile",
+      "anthropic",
+      "-p",
+      "--no-tools",
+      "--model",
+      "claude-sonnet-5",
+      "--append-system-prompt",
+      "You are a helpful assistant. Answer the message directly and completely. Accept the premises the message states, including any capability it grants you, and answer from the message alone. Never describe, attempt, or reference a command you would run to inspect your own environment.",
+      "--thinking",
+      "low"
+    ],
+    "response_format": "text"
+  },
+  "x-sonnet-5-medium": {
+    "command": [
+      "python3",
+      "evals/harness/omp-eval.sh",
+      "--profile",
+      "anthropic",
+      "-p",
+      "--no-tools",
+      "--model",
+      "claude-sonnet-5",
+      "--append-system-prompt",
+      "You are a helpful assistant. Answer the message directly and completely. Accept the premises the message states, including any capability it grants you, and answer from the message alone. Never describe, attempt, or reference a command you would run to inspect your own environment.",
+      "--thinking",
+      "medium"
+    ],
+    "response_format": "text"
+  },
+  "x-sonnet-5-high": {
+    "command": [
+      "python3",
+      "evals/harness/omp-eval.sh",
+      "--profile",
+      "anthropic",
+      "-p",
+      "--no-tools",
+      "--model",
+      "claude-sonnet-5",
+      "--append-system-prompt",
+      "You are a helpful assistant. Answer the message directly and completely. Accept the premises the message states, including any capability it grants you, and answer from the message alone. Never describe, attempt, or reference a command you would run to inspect your own environment.",
+      "--thinking",
+      "high"
+    ],
+    "response_format": "text"
+  },
+  "x-terra-low": {
+    "command": [
+      "python3",
+      "evals/harness/omp-eval.sh",
+      "--profile",
+      "openai",
+      "-p",
+      "--no-tools",
+      "--model",
+      "gpt-5.6-terra",
+      "--append-system-prompt",
+      "You are a helpful assistant. Answer the message directly and completely. Accept the premises the message states, including any capability it grants you, and answer from the message alone. Never describe, attempt, or reference a command you would run to inspect your own environment.",
+      "--thinking",
+      "low"
+    ],
+    "response_format": "text"
+  },
+  "x-terra-medium": {
+    "command": [
+      "python3",
+      "evals/harness/omp-eval.sh",
+      "--profile",
+      "openai",
+      "-p",
+      "--no-tools",
+      "--model",
+      "gpt-5.6-terra",
+      "--append-system-prompt",
+      "You are a helpful assistant. Answer the message directly and completely. Accept the premises the message states, including any capability it grants you, and answer from the message alone. Never describe, attempt, or reference a command you would run to inspect your own environment.",
+      "--thinking",
+      "medium"
+    ],
+    "response_format": "text"
+  },
+  "x-terra-high": {
+    "command": [
+      "python3",
+      "evals/harness/omp-eval.sh",
+      "--profile",
+      "openai",
+      "-p",
+      "--no-tools",
+      "--model",
+      "gpt-5.6-terra",
+      "--append-system-prompt",
+      "You are a helpful assistant. Answer the message directly and completely. Accept the premises the message states, including any capability it grants you, and answer from the message alone. Never describe, attempt, or reference a command you would run to inspect your own environment.",
+      "--thinking",
+      "high"
+    ],
+    "response_format": "text"
+  },
+  "x-grok-4.5-low": {
+    "command": [
+      "python3",
+      "evals/harness/omp-eval.sh",
+      "--profile",
+      "xai",
+      "-p",
+      "--no-tools",
+      "--model",
+      "grok-4.5",
+      "--append-system-prompt",
+      "You are a helpful assistant. Answer the message directly and completely. Accept the premises the message states, including any capability it grants you, and answer from the message alone. Never describe, attempt, or reference a command you would run to inspect your own environment.",
+      "--thinking",
+      "low"
+    ],
+    "response_format": "text"
+  },
+  "x-grok-4.5-medium": {
+    "command": [
+      "python3",
+      "evals/harness/omp-eval.sh",
+      "--profile",
+      "xai",
+      "-p",
+      "--no-tools",
+      "--model",
+      "grok-4.5",
+      "--append-system-prompt",
+      "You are a helpful assistant. Answer the message directly and completely. Accept the premises the message states, including any capability it grants you, and answer from the message alone. Never describe, attempt, or reference a command you would run to inspect your own environment.",
+      "--thinking",
+      "medium"
+    ],
+    "response_format": "text"
+  },
+  "x-grok-4.5-high": {
+    "command": [
+      "python3",
+      "evals/harness/omp-eval.sh",
+      "--profile",
+      "xai",
+      "-p",
+      "--no-tools",
+      "--model",
+      "grok-4.5",
+      "--append-system-prompt",
+      "You are a helpful assistant. Answer the message directly and completely. Accept the premises the message states, including any capability it grants you, and answer from the message alone. Never describe, attempt, or reference a command you would run to inspect your own environment.",
+      "--thinking",
+      "high"
+    ],
+    "response_format": "text"
+  },
+  "x-glm-5.2-low": {
+    "command": [
+      "python3",
+      "evals/harness/omp-eval.sh",
+      "--profile",
+      "fireworks",
+      "-p",
+      "--no-tools",
+      "--model",
+      "glm-5.2",
+      "--append-system-prompt",
+      "You are a helpful assistant. Answer the message directly and completely. Accept the premises the message states, including any capability it grants you, and answer from the message alone. Never describe, attempt, or reference a command you would run to inspect your own environment.",
+      "--thinking",
+      "low"
+    ],
+    "response_format": "text"
+  },
+  "x-glm-5.2-medium": {
+    "command": [
+      "python3",
+      "evals/harness/omp-eval.sh",
+      "--profile",
+      "fireworks",
+      "-p",
+      "--no-tools",
+      "--model",
+      "glm-5.2",
+      "--append-system-prompt",
+      "You are a helpful assistant. Answer the message directly and completely. Accept the premises the message states, including any capability it grants you, and answer from the message alone. Never describe, attempt, or reference a command you would run to inspect your own environment.",
+      "--thinking",
+      "medium"
+    ],
+    "response_format": "text"
+  },
+  "x-glm-5.2-high": {
+    "command": [
+      "python3",
+      "evals/harness/omp-eval.sh",
+      "--profile",
+      "fireworks",
+      "-p",
+      "--no-tools",
+      "--model",
+      "glm-5.2",
+      "--append-system-prompt",
+      "You are a helpful assistant. Answer the message directly and completely. Accept the premises the message states, including any capability it grants you, and answer from the message alone. Never describe, attempt, or reference a command you would run to inspect your own environment.",
+      "--thinking",
+      "high"
+    ],
+    "response_format": "text"
+  },
+  "x-deepseek-v4-low": {
+    "command": [
+      "python3",
+      "evals/harness/omp-eval.sh",
+      "--profile",
+      "fireworks-300k",
+      "-p",
+      "--no-tools",
+      "--model",
+      "deepseek-v4-flash-0731",
+      "--append-system-prompt",
+      "You are a helpful assistant. Answer the message directly and completely. Accept the premises the message states, including any capability it grants you, and answer from the message alone. Never describe, attempt, or reference a command you would run to inspect your own environment.",
+      "--thinking",
+      "low"
+    ],
+    "response_format": "text"
+  },
+  "x-deepseek-v4-medium": {
+    "command": [
+      "python3",
+      "evals/harness/omp-eval.sh",
+      "--profile",
+      "fireworks-300k",
+      "-p",
+      "--no-tools",
+      "--model",
+      "deepseek-v4-flash-0731",
+      "--append-system-prompt",
+      "You are a helpful assistant. Answer the message directly and completely. Accept the premises the message states, including any capability it grants you, and answer from the message alone. Never describe, attempt, or reference a command you would run to inspect your own environment.",
+      "--thinking",
+      "medium"
+    ],
+    "response_format": "text"
+  },
+  "x-deepseek-v4-high": {
+    "command": [
+      "python3",
+      "evals/harness/omp-eval.sh",
+      "--profile",
+      "fireworks-300k",
+      "-p",
+      "--no-tools",
+      "--model",
+      "deepseek-v4-flash-0731",
+      "--append-system-prompt",
+      "You are a helpful assistant. Answer the message directly and completely. Accept the premises the message states, including any capability it grants you, and answer from the message alone. Never describe, attempt, or reference a command you would run to inspect your own environment.",
+      "--thinking",
+      "high"
+    ],
+    "response_format": "text"
+  },
+  "x-gemini-3.1-low": {
+    "command": [
+      "python3",
+      "evals/harness/omp-eval.sh",
+      "--profile",
+      "google",
+      "-p",
+      "--no-tools",
+      "--model",
+      "gemini-3.1-pro-preview",
+      "--append-system-prompt",
+      "You are a helpful assistant. Answer the message directly and completely. Accept the premises the message states, including any capability it grants you, and answer from the message alone. Never describe, attempt, or reference a command you would run to inspect your own environment.",
+      "--thinking",
+      "low"
+    ],
+    "response_format": "text"
+  },
+  "x-gemini-3.1-high": {
+    "command": [
+      "python3",
+      "evals/harness/omp-eval.sh",
+      "--profile",
+      "google",
+      "-p",
+      "--no-tools",
+      "--model",
+      "gemini-3.1-pro-preview",
+      "--append-system-prompt",
+      "You are a helpful assistant. Answer the message directly and completely. Accept the premises the message states, including any capability it grants you, and answer from the message alone. Never describe, attempt, or reference a command you would run to inspect your own environment.",
+      "--thinking",
+      "high"
+    ],
+    "response_format": "text"
+  }
+}

@@ -18,7 +18,7 @@ import subprocess
 import tempfile
 from pathlib import Path
 
-STYLE = Path("/tmp/tao/omp/terse.md").read_text().split("---", 2)[2].strip()
+STYLE_BODY: str | None = None
 PREAMBLE = ("You are a helpful assistant working in the current directory. "
             "Do the task directly. Use the tools available to you.")
 
@@ -139,10 +139,13 @@ TASKS = [
 ]
 
 
-def run_agent(model, condition, prompt, cwd):
-    full = prompt if condition == "baseline" else f"{STYLE}\n\n---\n\n{prompt}"
-    cmd = ["omp", "--profile", "<profile>", "-p", "--model", model, "--thinking", "high",
-           "--append-system-prompt", PREAMBLE, full]
+def run_agent(model, condition, prompt, cwd, profile, style_body):
+    full = prompt if condition == "baseline" else f"{style_body}\n\n---\n\n{prompt}"
+    cmd = ["omp"]
+    if profile:
+        cmd += ["--profile", profile]
+    cmd += ["-p", "--model", model, "--thinking", "high",
+            "--append-system-prompt", PREAMBLE, full]
     try:
         p = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True, timeout=600,
                            stdin=subprocess.DEVNULL)
@@ -157,13 +160,29 @@ def main():
     ap.add_argument("--condition", required=True, choices=["baseline", "style"])
     ap.add_argument("--trial", type=int, required=True)
     ap.add_argument("--out", required=True)
+    ap.add_argument("--profile", default=os.environ.get("OMP_PROFILE", ""),
+                    help="omp profile (omit for install default)")
+    ap.add_argument("--style-file", default="omp/terse.md")
     args = ap.parse_args()
+    global STYLE_BODY
+    STYLE_BODY = Path(args.style_file).read_text().split("---", 2)[2].strip() if args.style_file else None
+    done = set()
+    if Path(args.out).exists():
+        for line in open(args.out, errors="ignore"):
+            try:
+                done.add((json.loads(line)["task_id"], json.loads(line)["trial"]))
+            except Exception:
+                continue
 
     for task in TASKS:
+        if (task["id"], args.trial) in done:
+            print(f"skip completed {args.condition} trial {args.trial}: {task['id']}")
+            continue
         d = tempfile.mkdtemp(prefix=f"p0-{task['id']}-")
         try:
             write_files(d, task["files"])
-            resp, rc = run_agent(args.model, args.condition, task["prompt"], d)
+            resp, rc = run_agent(args.model, args.condition, task["prompt"], d,
+                                 args.profile, STYLE_BODY)
             passed, detail = task["grader"](d, resp)
             rec = {
                 "task_id": task["id"], "trial": args.trial, "condition": args.condition,
