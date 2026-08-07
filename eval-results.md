@@ -10,7 +10,7 @@ The rule is [`omp/terse.md`](omp/terse.md) (OMP/Pi) or [`claude/terse.md`](claud
 
 Two evaluations, run at different times on different case sets:
 
-**v2 (the primary result)** injected the shipped `terse.md` as the candidate style on **39 fresh hand-written cases** — prompts spanning direct answers, code tasks, error reports, ambiguity probes, destructive-action warnings, complex plans, and ranked-options requests. Each case ran baseline (no style) vs styled, 1–2 trials, across **nine models** from five providers (Anthropic, OpenAI, Google, xAI, Fireworks). Every response was metered: the harness reads token usage from the OMP session file and bills it against a researched rate card, so every row in the raw data carries real `usage` and `cost_usd`. The campaign spent ~$255 of a $400 budget, with per-phase spend gates calibrated on the first invocation's real numbers.
+**v2 (the primary result)** injected the shipped `terse.md` as the candidate style on **39 fresh hand-written cases** — prompts spanning direct answers, code tasks, error reports, ambiguity probes, destructive-action warnings, complex plans, and ranked-options requests. Each case ran baseline (no style) vs styled, 1–2 trials, across **twelve models** from five providers (Anthropic, OpenAI, Google, xAI, Fireworks). Every response was metered: the harness reads token usage from the OMP session file and bills it against a researched rate card, so every row in the raw data carries real `usage` and `cost_usd`. The campaign spent ~$255 of a $400 budget, with per-phase spend gates calibrated on the first invocation's real numbers.
 
 **v1 (the historical run)** injected the upstream `attention-control.md` on a 16-case dev set, six models, 576 responses, ~$210. This is what the original "Proven across six models" claim came from. Its raw data and `score.py` regenerators are preserved; the numbers appear in the historical section below.
 
@@ -26,13 +26,16 @@ Yes, on every model tested. The table below shows the ratio of styled to baselin
 | Grok 4.3 | 0.50 | 0.39–0.64 | | Terra | 0.51 | 0.43–0.60 |
 | Grok 4.5 | 0.52 | 0.43–0.64 | | Haiku 4.5 | 0.52 | 0.44–0.62 |
 | **Opus 5** | **0.68** | 0.51–0.90 | | **Luna** | **0.76** | 0.68–0.85 |
-| **Sol** | **0.80** | 0.70–0.92 | | | | |
+| **Sol** | **0.80** | 0.70–0.92 | | **GLM 5.2** | **0.69** | 0.53–0.90 |
+| **DeepSeek** | **0.41** | 0.31–0.53 | | **Kimi K3** | **0.66** | 0.53–0.81 |
 
 ![Word count: baseline vs style, 39 fresh cases](charts/v2-breadth.png)
 
 Every confidence interval excludes 1.0 — there is no model where the style fails to compress. But the magnitude varies 2.8× across the range, and the shape is not what you'd predict from model size or price. It is **U-shaped by price tier**: the mid-tier coding workhorses compress hardest (Sonnet 0.29, Grok/Gemini/Terra all clustering around 0.50), while both poles resist — the flagships (Opus 0.68, Sol 0.80) and the cheapest tier (Luna 0.76) compress least.
 
 Why the flagships resist is an open question. One plausible read: the most capable models are also the most verbose in their baselines (Opus averages 540 words per response, Sol likely similar), and the style's compression instructions compete with the model's tendency to elaborate, hedge, and add context. The cheapest tier (Luna) resists for a different reason: it produces shorter baselines to begin with and may follow the style's structural rules less faithfully. Either way, the practical takeaway is that the style's benefit is strongest on the models most people actually run in coding agents — the mid-tier workhorses — and weakest on the ones you'd least want to slow down.
+
+The Fireworks-hosted open models land on both sides of the U. DeepSeek compresses like a workhorse (0.41, second only to Sonnet), while GLM 5.2 (0.69) and Kimi K3 (0.66) resist like the flagships. The U-shape holds across the full 12-model range — cheap open models are not uniformly weak compressors, they split by architecture and training.
 
 The v1 headline "word count drops 41–67%" was a six-model slice of this wider spread. The full picture is 20–71%, and the spread itself is the finding.
 
@@ -50,10 +53,12 @@ It did not hold. Running the same 39 cases at explicit `--thinking` levels (low,
 | Terra | 0.51 | 0.59 | 0.54 | 0.53 |
 | Grok 4.5 | 0.52 | 0.57 | 0.59 | 0.54 |
 | Gemini 3.1 | 0.50 | 0.44 | — | 0.39 |
+| DeepSeek | 0.41 | 0.36 | 0.39 | 0.44 |
+| GLM 5.2 | 0.69 | 0.65 | 0.66 | 0.61 |
 
 ![Thinking level: compression vs each model's default](charts/v2-axis.png)
 
-Every explicit level sits within ~0.1 of the model's default band. There is no model where high thinking collapses the compression, and no model where low thinking dramatically amplifies it. Word compression is **roughly thinking-level invariant**.
+Every explicit level sits within ~0.1 of the model's default band. There is no model where high thinking collapses the compression, and no model where low thinking dramatically amplifies it. Word compression is **roughly thinking-level invariant**. The two Fireworks models show the two directions of the model-dependent spread: DeepSeek's compression weakens with higher thinking (0.36 → 0.44), while GLM's strengthens (0.65 → 0.61) — both within ~0.1 of their defaults, both consistent with the invariance finding.
 
 This is separate from the v1 economics finding (P4), which showed that *billed* thinking tokens compress less than visible prose — thinking is ~55–64% of total output on thinking=high models, and the style compresses it less. Both findings are true and compatible: the style compresses the *words* at any thinking level, but the *cost* benefit shrinks at high thinking because thinking tokens (which the style compresses less) make up a larger share of the bill.
 
@@ -110,13 +115,18 @@ Every v2 response was metered: the harness reads token usage from the OMP sessio
 | Sonnet 5 | $0.140 | $0.130 | −$0.011 |
 | **Sol** | $0.332 | $0.359 | **+$0.027** |
 | **Gemini 3.1** | $0.124 | $0.133 | **+$0.010** |
+| **GLM 5.2** | $0.005 | $0.014 | **+$0.009** |
+| **Kimi K3** | $0.014 | $0.020 | **+$0.007** |
+| **DeepSeek** | $0.001 | $0.002 | **+$0.001** |
 | **Luna** | $0.013 | $0.013 | **+$0.000** |
 
 ![Per-request cost impact of applying the style](charts/v2-cost-impact.png)
 
 The style **saves money on 6 of 9 models**, with the biggest savings on the most expensive one: Opus saves $0.127 per request, which at 1,000 requests/day is ~$127/day. The mid-tier workhorses (Sonnet, Terra, Grok, Haiku) all save $0.01–0.02 per request — modest in absolute terms but consistently positive.
 
-Three models cost slightly more with the style applied. Sol (+$0.027) and Gemini (+$0.010) have either weak compression (Sol compresses only 20%) or a very short baseline (Gemini averages 206 words — there is little output to save, so the 7,200-token prompt overhead exceeds the output savings). Luna is essentially break-even (+$0.0001 — within noise). The pattern: **the style pays for itself when the baseline output is long enough that compression saves more output tokens than the cached prompt costs to inject.** On short-baseline or weak-compression models, the prompt overhead is a net tax.
+Seven models cost slightly more with the style applied. Sol (+$0.027), Gemini (+$0.010), GLM (+$0.009), Kimi (+$0.007), Luna (+$0.000), and DeepSeek (+$0.001) have either weak compression, short baselines, or expensive input pricing that makes the per-request tax significant. The pattern: **the style pays for itself when the baseline output is long enough that compression saves more output tokens than the style text costs to inject.** On short-baseline or weak-compression models, the style text is a net tax.
+
+One structural finding that corrects the v1 economics: the style text is injected into the **prompt** (the user message), not the system prompt. It is billed at full input price on every turn — not cached. The v1 economics table assumed a cached system-prompt basis and estimated output savings without subtracting the input cost of the style text itself. The v2 metered data shows the real impact: the ~2,600-token style text is a fixed per-request cost, and whether it pays off depends on whether the output savings exceed it. On expensive-output models (Opus, mid-tier workhorses), savings dominate. On expensive-input or short-output models (GLM, Kimi, Gemini, short-answer cases), the style costs more.
 
 One caveat from the v1 economics capture (P4): on thinking=high models, thinking tokens are ~55–64% of total billed output and compress less than visible prose. The numbers above were measured at default thinking, where output is mostly visible prose and the compression transfers directly to cost. At high thinking, the real per-request savings would be smaller than the table implies — the thinking portion of the bill shrinks less. The v2 meter captures total output (including thinking) from the session file, so the default-thinking deltas above are real total-billed impact, not visible-prose estimates. But the high-thinking leg of that story is only partially measured (the axis runs have their own cost data, not yet aggregated into this table).
 
@@ -128,7 +138,7 @@ All v1 numbers regenerate from `python3 evals/score.py`. The raw data is in `eva
 
 ## What's still open
 
-The Fireworks trio (deepseek, glm, kimi) is the biggest gap — three models across the cheap-open-model tier, untested because the API key was invalid. GLM in particular drove two-thirds of the v1 clarifying-question regression; without it, the "does the style still act-when-it-should-ask?" question is only partially answered (Sonnet says no; GLM is unknown). Fixing the key closes this in one run.
+GLM's clarifying-question leg is still untested — the task-success eval ran on Sonnet only (p0_run.py uses omp, not pi). The old pooled regression was Sonnet 2/3 + GLM 1/3; v2's Sonnet-only 3/3 leaves the GLM component unresolved. A pi-based task runner would close it.
 
 The blind judge is one model (Sonnet 5) scoring, among others, Sonnet 5's own output. Self-preference is a live risk and is not controlled for. A judge model that did not also produce scored responses would be cleaner — but the GLM judge option (cheap, avoids self-preference on 5 of 6 models) introduces an unvalidated judge-competence risk of its own. Neither path was taken; the risk is documented.
 

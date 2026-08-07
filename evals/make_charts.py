@@ -147,9 +147,10 @@ def v2_ratio(basep, candp):
     bmean = statistics.mean(b[k] for k in ks)
     return math.exp(m_), math.exp(m_ - 1.96 * sem), math.exp(m_ + 1.96 * sem), len(ks), bmean
 
-V2M = ["sonnet-5", "grok-4.3", "gemini-3.1", "terra", "grok-4.5", "haiku-4-5", "opus-5", "luna", "sol"]
+V2M = ["sonnet-5", "grok-4.3", "gemini-3.1", "terra", "grok-4.5", "haiku-4-5", "opus-5", "luna", "sol", "deepseek-v4", "glm-5.2", "kimi-k3"]
 V2L = {"sonnet-5": "Sonnet", "grok-4.3": "Grok 4.3", "gemini-3.1": "Gemini", "terra": "Terra",
-       "grok-4.5": "Grok 4.5", "haiku-4-5": "Haiku", "opus-5": "Opus", "luna": "Luna", "sol": "Sol"}
+       "grok-4.5": "Grok 4.5", "haiku-4-5": "Haiku", "opus-5": "Opus", "luna": "Luna", "sol": "Sol",
+       "deepseek-v4": "DeepSeek", "glm-5.2": "GLM 5.2", "kimi-k3": "Kimi K3"}
 
 # ---- v2-breadth: paired bars baseline vs style, CI whiskers on the style bar ----
 breadth = []
@@ -180,11 +181,13 @@ fig.tight_layout(); fig.savefig(CHARTS / "v2-breadth.png", dpi=150); plt.close(f
 
 # ---- v2-axis: small multiples, each model's levels vs its own default ----
 AXM = {"sonnet-5": ["low", "medium", "high"], "terra": ["low", "medium", "high"],
-       "grok-4.5": ["low", "medium", "high"], "gemini-3.1": ["low", "high"]}
-AXL = {"sonnet-5": "Sonnet", "terra": "Terra", "grok-4.5": "Grok 4.5", "gemini-3.1": "Gemini"}
+       "grok-4.5": ["low", "medium", "high"], "gemini-3.1": ["low", "high"],
+       "deepseek-v4": ["low", "medium", "high"], "glm-5.2": ["low", "medium", "high"]}
+AXL = {"sonnet-5": "Sonnet", "terra": "Terra", "grok-4.5": "Grok 4.5", "gemini-3.1": "Gemini",
+       "deepseek-v4": "DeepSeek", "glm-5.2": "GLM 5.2"}
 # default ratios from the breadth data
 DEFAULTS = {b[0]: b[1] for b in breadth}
-fig, axes = plt.subplots(2, 2, figsize=(9, 6.5))
+fig, axes = plt.subplots(2, 3, figsize=(12, 6.5))
 for ax, (m, lvls) in zip(axes.flat, AXM.items()):
     pts = []
     for lvl in lvls:
@@ -223,12 +226,30 @@ ax.legend(frameon=False, loc="upper right")
 ax.set_title("Blind judge: baseline vs style (39 pairs x 2 passes)\nDelta labelled; all four negative")
 fig.tight_layout(); fig.savefig(CHARTS / "v2-judge.png", dpi=150); plt.close(fig)
 
+# ---- cost-from-usage helper: compute $ for rows with nil cost_usd (written before the pricing fix) ----
+FW_PRICING = {
+    "fireworks:accounts/fireworks/models/deepseek-v4-flash-0731": {"input": 0.14, "output": 0.28, "cache_read": 0.028, "cache_write": 0},
+    "fireworks:accounts/fireworks/routers/glm-5p2-fast":          {"input": 2.10, "output": 6.60, "cache_read": 0.21, "cache_write": 0},
+    "fireworks:accounts/fireworks/models/kimi-k3":                {"input": 3.00, "output": 15.00, "cache_read": 0.30, "cache_write": 0},
+}
+def cost_for_row(r):
+    if r.get("cost_usd") is not None and r.get("cost_usd") > 0:
+        return r["cost_usd"]
+    u = r.get("usage") or {}
+    rate = FW_PRICING.get(r.get("model", ""))
+    if not rate or not u: return 0.0
+    def t(k):
+        v = u.get(k)
+        return float(v) if isinstance(v, (int, float)) else 0.0
+    return (t("input") * rate["input"] + t("cacheRead") * rate["cache_read"]
+            + t("cacheWrite") * rate["cache_write"] + t("output") * rate["output"]) / 1e6
+
 # ---- v2-cost-impact: per-request cost delta from applying the style ----
 import json as _json
 cost_impact = []
 for m in V2M:
-    b = [r.get("cost_usd") or 0 for r in score.load(str(V2 / f"baseline-{m}.jsonl"))]
-    c = [r.get("cost_usd") or 0 for r in score.load(str(V2 / f"candidate-{m}.jsonl"))]
+    b = [cost_for_row(r) for r in score.load(str(V2 / f"baseline-{m}.jsonl"))]
+    c = [cost_for_row(r) for r in score.load(str(V2 / f"candidate-{m}.jsonl"))]
     bm, cm = statistics.mean(b), statistics.mean(c)
     cost_impact.append((m, V2L[m], bm, cm, cm - bm))
 cost_impact.sort(key=lambda x: x[4])  # biggest savings at top
