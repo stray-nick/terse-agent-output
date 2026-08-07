@@ -1,6 +1,6 @@
 # terse-agent-output
 
-An output style for agents. Result-first, verbatim errors, no preamble, no fabrication. Forked from [attention-control](https://github.com/aaddrick/attention-control) with three evidence-driven fixes. Proven across six models.
+An output style for agents. Result-first, verbatim errors, no preamble, no fabrication. Forked from [attention-control](https://github.com/aaddrick/attention-control) with three evidence-driven fixes. Backed by two evals: six models on the upstream style, twelve fresh-case models on the shipped file.
 
 Agents write too much and hedge too often. This rule fixes both. It is a discipline, not a personality — and it is measurable. See [`eval-results.md`](eval-results.md) for the full evaluation, and [`evals/`](evals/) for the raw responses, prompts, and scoring script (`python3 evals/score.py` reproduces the tables).
 
@@ -39,11 +39,11 @@ curl -L -o ~/.claude/output-styles/terse.md https://github.com/stray-nick/terse-
 
 Reshapes output. Same work done. Two evals, neither a spot check:
 
-- **v2 — the shipped `terse.md`** on 39 fresh cases × 9 models (~$255, every response metered): word ratio 0.29–0.80, U-shaped — the mid-tier coding workhorses compress hardest (Sonnet 0.29, Grok/Gemini/Terra ~0.50), the flagships (Opus 0.68, Sol 0.80) and the cheapest tier (Luna 0.76) resist. Every model's CI excludes 1.0. Compression is roughly thinking-level invariant. Task success holds (Sonnet 20/22 → 24/24 mechanical; the old clarifying-question regression did not replicate on Sonnet — GLM leg untested). A fresh-set blind judge finds a quality cost on all four dimensions, largest on completeness (−1.24).
+- **v2 — the shipped `terse.md`** on 39 fresh cases × 12 models (~$255, every response metered): word ratio 0.29–0.80, U-shaped — the mid-tier coding workhorses compress hardest (Sonnet 0.29, Grok/Gemini/Terra ~0.50, DeepSeek 0.41), the flagships (Opus 0.68, Sol 0.80, GLM 0.69) and the cheapest tier (Luna 0.76) resist. Every model's CI excludes 1.0. Compression is roughly thinking-level invariant. Task success holds (Sonnet 20/22 → 24/24 mechanical; the old clarifying-question regression did not replicate on Sonnet — GLM leg untested). A fresh-set blind judge finds a quality cost on all four dimensions, largest on completeness (−1.24).
 - **v1 — six models, 576 responses** (`attention-control.md`): word count −41 to −67%, passive −76 to −95%, long sentences 0–4%; held-out generalization within 3–4 points; task totals within noise (57/60 vs 56/60); blind judge's main cost was completeness (−0.93).
 - **Economics**: net savings on every model, conditional on cache hits; real $/response is now metered in the v2 data ($0.013–$0.65).
 
-See [`eval-results.md`](eval-results.md) for the full data analysis — the shipped style on 39 fresh cases × 9 models, thinking-level effects, task success, blind-judge quality costs, and metered costs. Raw data, prompts, harnesses, and `score.py` (regenerates every table/chart) are in [`evals/`](evals/). The honest limitations — the U-shaped compression, the completeness cost, and the GLM-untested legs — are documented, not hidden.
+See [`eval-results.md`](eval-results.md) for the full data analysis — the shipped style on 39 fresh cases × 12 models, thinking-level effects, task success, blind-judge quality costs, and metered costs. Raw data, prompts, harnesses, and `score.py` (regenerates every table/chart) are in [`evals/`](evals/). The honest limitations — the U-shaped compression, the completeness cost, and the GLM-untested legs — are documented, not hidden.
 
 ## The three fixes over attention-control
 

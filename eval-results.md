@@ -101,7 +101,7 @@ This is the trade the style makes. It is not a free win. The mechanical metrics 
 
 ## What does it cost?
 
-The style adds a ~7,200-token system prompt to every turn (cached after the first call, billed at cache-read price). It also compresses output — fewer words means fewer output tokens, and output is 15–50× more expensive than cache-read. The question is whether the output savings offset the prompt overhead, per request, per model.
+The style adds a ~2,600-token text block to the user prompt on every turn — billed at full input price, not cached. It also compresses output — fewer words means fewer output tokens, and output is 15–50× more expensive than input. The question is whether the output savings offset the prompt cost, per request, per model.
 
 Every v2 response was metered: the harness reads token usage from the OMP session file and bills it against researched 2026-08 rate-card prices. So the table below is not an estimate — it is the measured dollar cost of each response, baseline vs styled, on the same 39 cases.
 
@@ -122,7 +122,7 @@ Every v2 response was metered: the harness reads token usage from the OMP sessio
 
 ![Per-request cost impact of applying the style](charts/v2-cost-impact.png)
 
-The style **saves money on 6 of 9 models**, with the biggest savings on the most expensive one: Opus saves $0.127 per request, which at 1,000 requests/day is ~$127/day. The mid-tier workhorses (Sonnet, Terra, Grok, Haiku) all save $0.01–0.02 per request — modest in absolute terms but consistently positive.
+The style **saves money on 6 of 12 models**, with the biggest savings on the most expensive one: Opus saves $0.127 per request, which at 1,000 requests/day is ~$127/day. The mid-tier workhorses (Sonnet, Terra, Grok, Haiku) all save $0.01–0.02 per request — modest in absolute terms but consistently positive.
 
 Seven models cost slightly more with the style applied. Sol (+$0.027), Gemini (+$0.010), GLM (+$0.009), Kimi (+$0.007), Luna (+$0.000), and DeepSeek (+$0.001) have either weak compression, short baselines, or expensive input pricing that makes the per-request tax significant. The pattern: **the style pays for itself when the baseline output is long enough that compression saves more output tokens than the style text costs to inject.** On short-baseline or weak-compression models, the style text is a net tax.
 
