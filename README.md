@@ -6,9 +6,7 @@ An output style for agents. Result-first, verbatim errors, no preamble, no fabri
 
 ## Install
 
-One style, three harnesses. The [`terse-style`](extensions/terse-style/) extension injects the rules into the system prompt when enabled, and nothing when disabled or uninstalled. This is the recommended install.
-
-### Pi
+One style, three harnesses. The [`terse-style`](extensions/terse-style/) extension injects the rules into the system prompt when enabled, and nothing when disabled or uninstalled. This is the recommended install for Pi.
 
 ```bash
 pi install extensions/terse-style
@@ -18,24 +16,7 @@ Registers and enables the extension in one step. Works in interactive sessions a
 
 ### oh-my-pi (OMP)
 
-The extension works in interactive oh-my-pi sessions. Install by copying and registering:
-
-```bash
-cp -r extensions/terse-style ~/.omp/agent/extensions/terse-style
-python3 - <<'EOF'
-import json, os
-p = os.path.expanduser("~/.omp/agent/settings.json")
-d = json.load(open(p)) if os.path.exists(p) else {}
-ext = d.setdefault("extensions", [])
-path = os.path.expanduser("~/.omp/agent/extensions/terse-style/index.ts")
-if path not in ext:
-    ext.append(path)
-    json.dump(d, open(p, "w"), indent=2)
-print(f"registered {path}")
-EOF
-```
-
-For **scripted `omp -p` runs**, oh-my-pi refuses third-party extensions in print mode — use the rules file instead:
+The extension is Pi-only — oh-my-pi refuses third-party extensions in print mode. Use the rules file instead:
 
 ```bash
 curl -L -o ~/.omp/agent/rules/terse.md https://github.com/stray-nick/terse-agent-output/releases/latest/download/terse.md
