@@ -1,0 +1,16 @@
+{
+  "name": "terse-agent-output",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Terse output style for agents. The terse-style extension injects the rules into the system prompt.",
+  "omp": {
+    "plugin": {
+      "extensions": {
+        "terse-style": "extensions/terse-style/index.ts"
+      }
+    }
+  },
+  "extensions": {
+    "terse-style": "extensions/terse-style/index.ts"
+  }
+}
