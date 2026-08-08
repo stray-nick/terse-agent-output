@@ -8,15 +8,29 @@ One file (`index.ts`), no dependencies, works in both Pi and OMP.
 
 ### Pi
 
-From the repo root:
+Install from the remote GitHub URL (no repo clone needed):
 
 ```bash
-pi install extensions/terse-style
+pi install "git:github.com/stray-nick/terse-agent-output/extensions/terse-style@v0.2.0"
 ```
 
-That's it — `pi install` registers the extension in `~/.pi/agent/settings.json` and enables it. To disable without uninstalling, remove the `+` prefix from the `extensions/terse-style/index.ts` entry in `~/.pi/agent/settings.json` (change it to `-`), or use `pi config` and toggle it off.
+Then enable it: `pi config` → terse-agent-output → terse-style → enable. Or add `+extensions/terse-style/index.ts` to `~/.pi/agent/settings.json` manually:
 
-Uninstall: remove the entry from `~/.pi/agent/settings.json` and delete `~/.pi/agent/extensions/terse-style/`.
+```bash
+python3 - <<'EOF'
+import json, os
+p = os.path.expanduser("~/.pi/agent/settings.json")
+d = json.load(open(p)) if os.path.exists(p) else {}
+ext = d.setdefault("extensions", [])
+entry = "+extensions/terse-style/index.ts"
+if entry not in ext:
+    ext.append(entry)
+    json.dump(d, open(p, "w"), indent=2)
+print(f"enabled {entry}")
+EOF
+```
+
+With the repo cloned: `pi install extensions/terse-style` installs from the local path, then enable the same way. To disable without uninstalling, remove the `+` prefix from the entry in `~/.pi/agent/settings.json` (change it to `-`), or use `pi config` and toggle it off. To uninstall, remove the entry and delete `~/.pi/agent/extensions/terse-style/`.
 
 ### OMP
 
