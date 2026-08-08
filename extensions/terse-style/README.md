@@ -20,29 +20,15 @@ Uninstall: remove the entry from `~/.pi/agent/settings.json` and delete `~/.pi/a
 
 ### OMP
 
-OMP loads local extensions from `~/.omp/agent/settings.json` using absolute paths (same mechanism as its built-in extensions).
+The extension works in **interactive OMP sessions** — OMP loads extensions from `~/.omp/agent/settings.json` the same way as its built-in extensions, and the `before_agent_start` hook fires in interactive sessions.
+
+For **scripted `omp -p` runs**, OMP refuses third-party extensions in print mode (safety gate on arbitrary code). Use the rules file install instead:
 
 ```bash
-# 1. Copy the extension
-cp -r extensions/terse-style ~/.omp/agent/extensions/terse-style
-
-# 2. Register the absolute path in OMP's settings
-python3 - <<'EOF'
-import json, os
-p = os.path.expanduser("~/.omp/agent/settings.json")
-d = json.load(open(p)) if os.path.exists(p) else {}
-ext = d.setdefault("extensions", [])
-path = os.path.expanduser("~/.omp/agent/extensions/terse-style/index.ts")
-if path not in ext:
-    ext.append(path)
-    json.dump(d, open(p, "w"), indent=2)
-print(f"registered {path}")
-EOF
+curl -L -o ~/.omp/agent/rules/terse.md https://github.com/stray-nick/terse-agent-output/releases/latest/download/terse.md
 ```
 
-To disable without uninstalling, remove the `~/.omp/agent/extensions/terse-style/index.ts` entry from `~/.omp/agent/settings.json`. To uninstall, delete the entry and the `~/.omp/agent/extensions/terse-style/` directory.
-
-**Note:** `omp plugin install` refuses third-party local packages (safety gate on arbitrary code). The settings.json registration above is the native mechanism OMP uses for local extensions — it is how OMP's own built-in extensions are loaded.
+The rules file has `alwaysApply: true` and works in both interactive and print mode. The extension is the Pi delivery mechanism; the rules file is the OMP delivery mechanism for scripted use.
 
 ## Verify
 

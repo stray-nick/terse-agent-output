@@ -33,13 +33,13 @@ curl -L -o ~/.claude/output-styles/terse.md https://github.com/stray-nick/terse-
 
 **Enforcement caveat (OMP only):** the TTSR rule works in interactive sessions but hangs in `-p` (print) mode. Remove `no-forbidden-openers.md` if you rely on scripted `-p` runs.
 
-**Extension install (alternative):** instead of the file installs above, install the [`terse-style`](extensions/terse-style/) extension — it injects the same rules into the system prompt when enabled, and nothing when disabled or uninstalled:
+**Extension install (Pi):** instead of the file install above, install the [`terse-style`](extensions/terse-style/) extension — it injects the same rules into the system prompt when enabled, and nothing when disabled or uninstalled:
 
 ```bash
-cp -r extensions/terse-style ~/.omp/agent/extensions/terse-style   # OMP
-cp -r extensions/terse-style ~/.pi/agent/extensions/terse-style    # Pi
+pi install extensions/terse-style
 ```
-Then enable it in your harness's extension settings (or `pi install extensions/terse-style` / `omp install extensions/terse-style` if your build supports local installs).
+
+**OMP note:** the extension works in interactive OMP sessions (same extension API). For scripted `omp -p` runs, OMP refuses third-party extensions in print mode — use the rules file install above (`~/.omp/agent/rules/terse.md`) instead.
 
 ## What it does
 
