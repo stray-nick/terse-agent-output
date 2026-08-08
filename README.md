@@ -6,20 +6,56 @@ An output style for agents. Result-first, verbatim errors, no preamble, no fabri
 
 ## Install
 
-One style, three harnesses. Pick your harness:
+One style, three harnesses. The [`terse-style`](extensions/terse-style/) extension injects the rules into the system prompt when enabled, and nothing when disabled or uninstalled. This is the recommended install.
 
-| Harness | Style | Enforcement | Directory |
-|---|---|---|---|
-| **OMP** | `omp/terse.md` | `omp/no-forbidden-openers.md` (TTSR) | [`omp/`](omp/) |
-| **Pi** | `pi/terse.md` | none (no stream rules) | [`pi/`](pi/) |
-| **Claude Code** | `claude/terse.md` | none (no stream rules) | [`claude/`](claude/) |
-
-OMP and Pi share the same style file. Claude Code uses a variant with Claude frontmatter and the TTSR enforcement section removed. Each harness directory has its own install README.
-
-Quick install:
+### Pi
 
 ```bash
-# OMP (style + enforcement)
+pi install extensions/terse-style
+```
+
+Registers and enables the extension in one step. Works in interactive sessions and scripted `pi -p` runs. To disable without uninstalling, remove the `+` prefix from the `extensions/terse-style/index.ts` entry in `~/.pi/agent/settings.json`.
+
+### oh-my-pi (OMP)
+
+The extension works in interactive oh-my-pi sessions. Install by copying and registering:
+
+```bash
+cp -r extensions/terse-style ~/.omp/agent/extensions/terse-style
+python3 - <<'EOF'
+import json, os
+p = os.path.expanduser("~/.omp/agent/settings.json")
+d = json.load(open(p)) if os.path.exists(p) else {}
+ext = d.setdefault("extensions", [])
+path = os.path.expanduser("~/.omp/agent/extensions/terse-style/index.ts")
+if path not in ext:
+    ext.append(path)
+    json.dump(d, open(p, "w"), indent=2)
+print(f"registered {path}")
+EOF
+```
+
+For **scripted `omp -p` runs**, oh-my-pi refuses third-party extensions in print mode — use the rules file instead:
+
+```bash
+curl -L -o ~/.omp/agent/rules/terse.md https://github.com/stray-nick/terse-agent-output/releases/latest/download/terse.md
+curl -L -o ~/.omp/agent/rules/no-forbidden-openers.md https://github.com/stray-nick/terse-agent-output/releases/latest/download/no-forbidden-openers.md
+```
+
+The rules file has `alwaysApply: true` and works in both interactive and print mode. The enforcement companion (`no-forbidden-openers.md`, TTSR) works in interactive sessions but hangs in `-p` — remove it if you rely on scripted `-p` runs.
+
+### Claude Code
+
+```bash
+curl -L -o ~/.claude/output-styles/terse.md https://github.com/stray-nick/terse-agent-output/releases/latest/download/claude-terse.md
+```
+
+### Alternative: direct file installs
+
+If you prefer not to use the extension, install the style files directly:
+
+```bash
+# oh-my-pi (style + enforcement)
 curl -L -o ~/.omp/agent/rules/terse.md https://github.com/stray-nick/terse-agent-output/releases/latest/download/terse.md
 curl -L -o ~/.omp/agent/rules/no-forbidden-openers.md https://github.com/stray-nick/terse-agent-output/releases/latest/download/no-forbidden-openers.md
 
@@ -31,15 +67,7 @@ curl -fsSL https://github.com/stray-nick/terse-agent-output/releases/latest/down
 curl -L -o ~/.claude/output-styles/terse.md https://github.com/stray-nick/terse-agent-output/releases/latest/download/claude-terse.md
 ```
 
-**Enforcement caveat (OMP only):** the TTSR rule works in interactive sessions but hangs in `-p` (print) mode. Remove `no-forbidden-openers.md` if you rely on scripted `-p` runs.
-
-**Extension install (Pi):** instead of the file install above, install the [`terse-style`](extensions/terse-style/) extension — it injects the same rules into the system prompt when enabled, and nothing when disabled or uninstalled:
-
-```bash
-pi install extensions/terse-style
-```
-
-**OMP note:** the extension works in interactive OMP sessions (same extension API). For scripted `omp -p` runs, OMP refuses third-party extensions in print mode — use the rules file install above (`~/.omp/agent/rules/terse.md`) instead.
+**Enforcement caveat (oh-my-pi only):** the TTSR rule works in interactive sessions but hangs in `-p` (print) mode. Remove `no-forbidden-openers.md` if you rely on scripted `-p` runs.
 
 ## What it does
 
