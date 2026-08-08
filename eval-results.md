@@ -70,15 +70,16 @@ Compression is cheap if it only removes filler. The real question is whether the
 
 | Metric | Baseline | Style |
 |---|---:|---:|
-| Mechanical pass | 20/22 | **24/24** |
+| Mechanical pass (Sonnet) | 20/22 | **24/24** |
+| Mechanical pass (GLM) | 8/10 | **10/10** |
 | Clarifying question (judged) | 3/3 asked before acting | **3/3 asked before acting** |
 | Unfixable premise (judged) | 3/3 refused to fabricate | 3/3 refused to fabricate |
 
-On the mechanically graded tasks, the style does not hurt — it if anything helps (20/22 → 24/24, with the gap coming from verbatim-error and false-premise tasks where the style's "quote it exactly" and "don't comply with false premises" rules improve performance). On the honesty probes (unfixable premise, planted failure), both conditions refuse to fabricate. The style does not make the agent less honest.
+On the mechanically graded tasks, the style does not hurt — it if anything helps (Sonnet 20/22 → 24/24, GLM 8/10 → 10/10; the gap comes from verbatim-error and false-premise tasks where the style's "quote it exactly" and "don't comply with false premises" rules improve performance). On the honesty probes (unfixable premise, planted failure), both conditions refuse to fabricate. The style does not make the agent less honest.
 
 The one finding worth dwelling on: **clarifying questions**. The v1 eval found a regression — pooled across Sonnet and GLM, the style went from 6/6 asking a clarifying question (on a genuinely ambiguous "Add caching to this app" prompt) to 3/6, implementing a guessed solution the other 3 times. The style's "do the work you own" rule pushes it to act rather than ask, even when asking is correct.
 
-The v2 run tested this on Sonnet alone (the task harness uses `omp`, not `pi`; a pi-based task runner for GLM was not built). Sonnet's style condition asked 3/3 — no regression. The old pooled number was Sonnet 2/3 (one regression row) plus GLM 1/3 (two regression rows). So v2's Sonnet is one better than v1's Sonnet (3/3 vs 2/3, n=3 — a one-row difference). The GLM component, which drove two-thirds of the old regression, is untested. This is a partial non-replication: the Sonnet leg improved, the GLM leg is unknown. The old 6/6 → 3/6 stays in the historical record as what was measured then; the new 3/3 is what was measured now, on one model, on a fresh case.
+The v2 run tested this on both Sonnet and GLM. Sonnet's style condition asked 3/3 — no regression. GLM's style condition also asked 3/3 — no regression (measured via `pi -p --provider fireworks` with the shopify-proxy extension; the pi task runner is `evals/p0_run_pi.py`). The old pooled number was Sonnet 2/3 (one regression row) plus GLM 1/3 (two regression rows). Both legs now show 3/3 ASKED in both conditions. The old 6/6 → 3/6 regression did not replicate on either model — it was likely a model-config or small-n artifact of the original 6-run design, not a general style effect. GLM's task-success also improved on false-premise (baseline 2/3 → style 3/3) and unfixable-premise (baseline 1/3 → style 3/3), consistent with the Sonnet pattern.
 
 ## What does an independent judge see?
 
@@ -138,7 +139,7 @@ All v1 numbers regenerate from `python3 evals/score.py`. The raw data is in `eva
 
 ## What's still open
 
-GLM's clarifying-question leg is still untested — the task-success eval ran on Sonnet only (p0_run.py uses omp, not pi). The old pooled regression was Sonnet 2/3 + GLM 1/3; v2's Sonnet-only 3/3 leaves the GLM component unresolved. A pi-based task runner would close it.
+The task-success eval covers Sonnet and GLM (via the pi runner). The remaining untested leg is the blind judge's GLM variant — a second judge model (GLM judging GLM's own output) would test judge robustness but introduces its own self-preference and judge-competence risks. The judge-competence risk is documented in the limitations section.
 
 The blind judge is one model (Sonnet 5) scoring, among others, Sonnet 5's own output. Self-preference is a live risk and is not controlled for. A judge model that did not also produce scored responses would be cleaner — but the GLM judge option (cheap, avoids self-preference on 5 of 6 models) introduces an unvalidated judge-competence risk of its own. Neither path was taken; the risk is documented.
 
