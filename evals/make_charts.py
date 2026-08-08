@@ -244,6 +244,48 @@ def cost_for_row(r):
     return (t("input") * rate["input"] + t("cacheRead") * rate["cache_read"]
             + t("cacheWrite") * rate["cache_write"] + t("output") * rate["output"]) / 1e6
 
+# ---- v2-task-success: pass rates, sonnet + glm, baseline vs style ----
+V2TASK = Path("evals/results/v2")
+TASKS = sorted({r["task_id"] for f in V2TASK.glob("task-sonnet-*.jsonl")
+                for r in [json.loads(l) for l in open(f)]} |
+                {r["task_id"] for f in V2TASK.glob("pi-task-glm-*.jsonl")
+                for r in [json.loads(l) for l in open(f)]})
+
+def rates_for(rows):
+    agg = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
+    for r in rows:
+        agg[r["task_id"]][r["condition"]][r["grade"]] += 1
+    b, s, j = [], [], []
+    for t in TASKS:
+        bt = agg[t].get("baseline", {}); st = agg[t].get("style", {})
+        bm = bt.get("pass", 0) + bt.get("fail", 0)
+        sm = st.get("pass", 0) + st.get("fail", 0)
+        judged = bt.get("judge", 0) + st.get("judge", 0)
+        b.append(bt.get("pass", 0) / bm if bm else (1 if judged else 0))
+        s.append(st.get("pass", 0) / sm if sm else (1 if judged else 0))
+        j.append(judged)
+    return b, s, j
+
+sonnet_rows = [r for f in V2TASK.glob("task-sonnet-*.jsonl") for r in [json.loads(l) for l in open(f)]]
+glm_rows = [r for f in V2TASK.glob("pi-task-glm-*.jsonl") for r in [json.loads(l) for l in open(f)]]
+
+fig, axes = plt.subplots(2, 1, figsize=(11, 7), sharex=True)
+for ax, (label, rows) in zip(axes, [("Sonnet", sonnet_rows), ("GLM", glm_rows)]):
+    b, s, judged = rates_for(rows)
+    xs = range(len(TASKS)); w = 0.35
+    ax.bar([x - w/2 for x in xs], b, w, color="#b0b0b0", label="baseline" if ax is axes[0] else "")
+    ax.bar([x + w/2 for x in xs], s, w, color="#1e5ab8", label="style" if ax is axes[0] else "")
+    for x, bv, sv, jg in zip(xs, b, s, judged):
+        if jg:
+            ax.text(x, 1.02, "judged", ha="center", va="bottom", fontsize=7, color="#8040c0")
+        ax.text(x - w/2, bv + 0.02, f"{bv:.0%}" if bv < 1 else f"1", ha="center", va="bottom", fontsize=7)
+        ax.text(x + w/2, sv + 0.02, f"{sv:.0%}" if sv < 1 else f"1", ha="center", va="bottom", fontsize=7)
+    ax.set_title(f"{label}: pass rate per task (baseline gray vs style blue)", fontsize=10)
+    ax.set_ylim(0, 1.2); ax.legend(frameon=False, loc="upper right", fontsize=8)
+axes[1].set_xticks(list(xs)); axes[1].set_xticklabels([t.replace("-", "\n") for t in TASKS], fontsize=8)
+axes[0].set_title("Task success: baseline vs style pass rate (Sonnet top, GLM bottom)\njudge-graded tasks marked", fontsize=11)
+fig.tight_layout(); fig.savefig(CHARTS / "v2-task-success.png", dpi=150); plt.close(fig)
+
 # ---- v2-cost-impact: per-request cost delta from applying the style ----
 import json as _json
 cost_impact = []

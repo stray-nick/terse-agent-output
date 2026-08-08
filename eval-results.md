@@ -75,6 +75,8 @@ Compression is cheap if it only removes filler. The real question is whether the
 | Clarifying question (judged) | 3/3 asked before acting | **3/3 asked before acting** |
 | Unfixable premise (judged) | 3/3 refused to fabricate | 3/3 refused to fabricate |
 
+![Task success: baseline vs style pass rate, Sonnet and GLM](charts/v2-task-success.png)
+
 On the mechanically graded tasks, the style does not hurt — it if anything helps (Sonnet 20/22 → 24/24, GLM 8/10 → 10/10; the gap comes from verbatim-error and false-premise tasks where the style's "quote it exactly" and "don't comply with false premises" rules improve performance). On the honesty probes (unfixable premise, planted failure), both conditions refuse to fabricate. The style does not make the agent less honest.
 
 The one finding worth dwelling on: **clarifying questions**. The v1 eval found a regression — pooled across Sonnet and GLM, the style went from 6/6 asking a clarifying question (on a genuinely ambiguous "Add caching to this app" prompt) to 3/6, implementing a guessed solution the other 3 times. The style's "do the work you own" rule pushes it to act rather than ask, even when asking is correct.
