@@ -1,9 +1,12 @@
 {
   "name": "terse-style",
   "version": "0.1.0",
+  "type": "module",
   "description": "Injects the terse output style into the system prompt when installed.",
   "main": "index.ts",
   "pi": {
-    "extension": true
+    "extensions": [
+      "index.ts"
+    ]
   }
 }
