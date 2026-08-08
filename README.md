@@ -8,11 +8,13 @@ An output style for agents. Result-first, verbatim errors, no preamble, no fabri
 
 One style, three harnesses. The [`terse-style`](extensions/terse-style/) extension injects the rules into the system prompt when enabled, and nothing when disabled or uninstalled. This is the recommended install for Pi.
 
+Install from the remote GitHub URL (no repo clone needed):
+
 ```bash
-pi install extensions/terse-style
+pi install "git:github.com/stray-nick/terse-agent-output/extensions/terse-style@v0.2.0"
 ```
 
-Registers and enables the extension in one step. Works in interactive sessions and scripted `pi -p` runs. To disable without uninstalling, remove the `+` prefix from the `extensions/terse-style/index.ts` entry in `~/.pi/agent/settings.json`.
+Then enable it: `pi config` → terse-agent-output → terse-style → enable. Or add `+extensions/terse-style/index.ts` to `~/.pi/agent/settings.json` manually. Works in interactive sessions and scripted `pi -p` runs. To disable without uninstalling, remove the `+` prefix from the entry in `~/.pi/agent/settings.json`.
 
 ### oh-my-pi (OMP)
 
